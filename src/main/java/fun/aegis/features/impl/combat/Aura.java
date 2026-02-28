@@ -70,6 +70,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+/**
+ * CYPHRONE ENGINE: Advanced Combat System
+ * High-performance aura module with mathematical precision targeting
+ * Powered by Cyphrone Engine - Next Generation Combat Framework
+ */
 public class Aura extends Module {
 
     private static final float RANGE_MARGIN = 0.253F;
@@ -814,6 +819,8 @@ public class Aura extends Module {
     }
 
     public void analyzeMiss(LivingEntity target) {
+        // === CYPHRONE ENGINE: MISS ANALYZER SYSTEM ===
+        // Advanced miss detection and analysis powered by Cyphrone Engine
         if (target == null || mc.player == null) return;
 
         // Базовые параметры
@@ -825,6 +832,7 @@ public class Aura extends Module {
         float rotationAccuracy = 0.85f;
         float rotationSpeed = 45.0f;
 
+        // === CYPHRONE ENGINE: INTELLIGENT MISS DETECTION ===
         // Используем MissAnalyzer для анализа
         java.util.List<MissReasonNotifier.MissReason> reasons = missAnalyzer.analyzeSmartMissWithHistory(
             target,
@@ -837,11 +845,13 @@ public class Aura extends Module {
             rotationSpeed
         );
 
+        // === CYPHRONE ENGINE: STATISTICS RECORDER ===
         // Регистрируем мисс
         debugStats.recordMultipleMisses(reasons);
         debugStats.updateRotationAccuracy(rotationAccuracy);
         debugStats.updateAveragePing(ping);
         
+        // === CYPHRONE ENGINE: NOTIFICATION SYSTEM ===
         // Отправляем сообщения в чат
         if (reasons.size() > 1) {
             StringBuilder reasonsText = new StringBuilder();

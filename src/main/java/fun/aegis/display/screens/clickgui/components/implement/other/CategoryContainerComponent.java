@@ -41,7 +41,7 @@ public class CategoryContainerComponent extends AbstractComponent {
 
     @Override
     public void tick() {
-        if (TextComponent.typing || SearchComponent.typing) InventoryFlowManager.unPressMoveKeys();
+        if (TextComponent.typing) InventoryFlowManager.unPressMoveKeys();
         else InventoryFlowManager.updateMoveKeys();
         categoryComponents.forEach(AbstractComponent::tick);
         super.tick();

@@ -338,20 +338,13 @@ public class CategoryComponent extends AbstractComponent {
     private boolean shouldRenderComponent(ModuleComponent component) {
         MenuScreen menuScreen = MenuScreen.INSTANCE;
         ModuleCategory moduleCategory = component.getModule().getCategory();
-        String text = menuScreen.getSearchComponent().getText().toLowerCase();
-        String moduleName = component.getModule().getVisibleName().toLowerCase();
         
         // Быстрая проверка категории
         if (!moduleCategory.equals(menuScreen.getCategory())) {
             return false;
         }
         
-        // Если нет поиска, показываем все модули категории
-        if (text.isEmpty()) {
-            return true;
-        }
-        
-        // Проверяем поиск
-        return moduleName.contains(text);
+        // Показываем все модули категории
+        return true;
     }
 }

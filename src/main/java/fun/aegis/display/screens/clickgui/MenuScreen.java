@@ -16,7 +16,6 @@ import fun.aegis.utils.display.interfaces.QuickImports;
 import fun.aegis.display.screens.clickgui.components.AbstractComponent;
 import fun.aegis.display.screens.clickgui.components.implement.other.BackgroundComponent;
 import fun.aegis.display.screens.clickgui.components.implement.other.CategoryContainerComponent;
-import fun.aegis.display.screens.clickgui.components.implement.other.SearchComponent;
 import fun.aegis.display.screens.clickgui.components.implement.other.UserComponent;
 import fun.aegis.display.screens.clickgui.components.implement.settings.TextComponent;
 import fun.aegis.utils.math.calc.Calculate;
@@ -35,7 +34,6 @@ public class MenuScreen extends Screen implements QuickImports {
     private final List<AbstractComponent> components = new ArrayList<>();
     private final BackgroundComponent backgroundComponent = new BackgroundComponent();
     private final UserComponent userComponent = new UserComponent();
-    private final SearchComponent searchComponent = new SearchComponent();
     private final CategoryContainerComponent categoryContainerComponent = new CategoryContainerComponent();
     public final EaseBackIn animation = new EaseBackIn(325, 1f, 1.5f);
     public ModuleCategory category = ModuleCategory.COMBAT;
@@ -52,7 +50,7 @@ public class MenuScreen extends Screen implements QuickImports {
     public void initialize() {
         animation.setDirection(FORWARDS);
         categoryContainerComponent.initializeCategoryComponents();
-        components.addAll(Arrays.asList(backgroundComponent, userComponent, searchComponent, categoryContainerComponent));
+        components.addAll(Arrays.asList(backgroundComponent, userComponent, categoryContainerComponent));
     }
 
     public MenuScreen() {
@@ -111,13 +109,6 @@ public class MenuScreen extends Screen implements QuickImports {
 
         rectangle.render(ShapeProperties.create(context.getMatrices(), 0, 0, window.getScaledWidth(), window.getScaledHeight()).color(Calculate.applyOpacity(0xFF000000, 100 * getScaleAnimation())).build());
         backgroundComponent.position(x - 20, y).size(width + 40, height);
-
-        if (category == ModuleCategory.COMBAT || category == ModuleCategory.MOVEMENT || category == ModuleCategory.RENDER || category == ModuleCategory.PLAYER || category == ModuleCategory.MISC) {
-            searchComponent.position(x + 330, y + 7.5F);
-        } else {
-            searchComponent.position(x + 330, y - 1000f);
-            searchComponent.setText("");
-        }
         categoryContainerComponent.position(x - 20, y);
 
         Calculate.scale(context.getMatrices(), x + (float) width / 2, y + (float) height / 2, getScaleAnimation(), () -> {
@@ -245,7 +236,6 @@ public class MenuScreen extends Screen implements QuickImports {
     public void close() {
         if (animation.finished(BACKWARDS)) {
             TextComponent.typing = false;
-            SearchComponent.typing = false;
             super.close();
         }
     }
