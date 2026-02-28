@@ -103,15 +103,15 @@ public class HAngleV2 extends RotateConstructor {
                if (distance <= 1.0) {
                     // Рандомизация ускорения 2-11% при близкой дистанции
                     accelerationBoost = 1.02f + (secureRandom.nextFloat() * 0.09f); // 1.02 - 1.11
-                    // Повышение скорости поворота персонажа вблизи на 8-15%
-                    closeRangeSpeedBoost = 1.08f + (secureRandom.nextFloat() * 0.07f); // 1.08 - 1.15
+                    // Повышение скорости поворота персонажа вблизи на 3-6% (чуть ниже)
+                    closeRangeSpeedBoost = 1.03f + (secureRandom.nextFloat() * 0.03f); // 1.03 - 1.06
                }
           }
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
-          // Повышенная базовая скорость с плавностью
-          float speedYaw = 45.0f * accelerationBoost * closeRangeSpeedBoost;      // Повышено с 35
-          float speedPitch = 28.0f * accelerationBoost * closeRangeSpeedBoost;    // Повышено с 20
+          // Менее агрессивная базовая скорость
+          float speedYaw = 38.0f * accelerationBoost * closeRangeSpeedBoost;      // Снижено с 45
+          float speedPitch = 24.0f * accelerationBoost * closeRangeSpeedBoost;    // Снижено с 28
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);
@@ -132,22 +132,22 @@ public class HAngleV2 extends RotateConstructor {
           // === CYPHRONE ENGINE: MINIMAL PERLIN NOISE ===
           // Очень плавное хаотичное движение через шум Перлина (МИНИМАЛЬНОЕ)
           float perlinValue = getPerlinNoise(noiseOffset += 0.02f * PHI);
-          float perlinJitterYaw = perlinValue * 0.08f;    // Чуть больше чем было (0.02), но меньше чем было (0.2)
-          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.06f; // Чуть больше чем было (0.01), но меньше чем было (0.15)
+          float perlinJitterYaw = perlinValue * 0.05f;    // Снижено с 0.08
+          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.03f; // Снижено с 0.06
 
           // === CYPHRONE ENGINE: SMOOTH MODULATION ===
           // Плавная модуляция без хаотичных скачков
-          float smoothModulation = (float) Math.sin((System.currentTimeMillis() % 5000) / 5000.0 * PI * 2) * 0.02f;
+          float smoothModulation = (float) Math.sin((System.currentTimeMillis() % 5000) / 5000.0 * PI * 2) * 0.015f;
           
           // === CYPHRONE ENGINE: SUBTLE JITTER FOR REALISM ===
-          // Небольшой джиттер для реалистичности (чуть меньше чем было)
+          // Небольшой джиттер для реалистичности (еще ниже при ударе)
           float rotationDifference = (float) Math.hypot(yawDelta, pitchDelta);
           float subtleJitterYaw = 0;
           float subtleJitterPitch = 0;
           if (rotationDifference > 0.4f) {
                double time = (System.currentTimeMillis() % 10000) / 1000.0;
-               subtleJitterYaw = (float) (Math.sin(time * PHI) * 0.06f);  // Уменьшено с 0.15
-               subtleJitterPitch = (float) (Math.cos(time * (PHI * PHI)) * 0.05f); // Уменьшено с 0.15
+               subtleJitterYaw = (float) (Math.sin(time * PHI) * 0.03f);  // Снижено с 0.06
+               subtleJitterPitch = (float) (Math.cos(time * (PHI * PHI)) * 0.025f); // Снижено с 0.05
           }
 
           // === CYPHRONE ENGINE: ADVANCED MATHEMATICAL SYSTEMS ===
