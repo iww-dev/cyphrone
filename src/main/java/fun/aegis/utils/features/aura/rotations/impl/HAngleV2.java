@@ -152,8 +152,8 @@ public class HAngleV2 extends RotateConstructor {
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
           // Менее агрессивная базовая скорость
-          float speedYaw = 34.0f * accelerationBoost;      // Чуть ниже (было 36)
-          float speedPitch = 14.0f * accelerationBoost;    // Повышено (было 8)
+          float speedYaw = 42.0f * accelerationBoost;      // Повышено (было 34)
+          float speedPitch = 26.0f * accelerationBoost;    // Повышено (было 14)
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);

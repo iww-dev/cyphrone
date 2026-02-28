@@ -177,8 +177,8 @@ public class UnilegitCE extends RotateConstructor {
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
           // Менее агрессивная базовая скорость (ниже чем HvH V2)
-          float speedYaw = 31.0f * accelerationBoost;      // Ниже (было 34)
-          float speedPitch = 12.0f * accelerationBoost;    // Ниже (было 14)
+          float speedYaw = 38.0f * accelerationBoost;      // Повышено (было 31)
+          float speedPitch = 23.0f * accelerationBoost;    // Повышено (было 12)
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);

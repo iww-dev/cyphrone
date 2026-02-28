@@ -691,6 +691,7 @@ public class Aura extends Module {
             case "HolyWorld" -> new HWAngle();
             case "ReallyWorld" -> new RWAngle();
             case "HvH V2" -> new HAngleV2();
+            case "Unilegit CE" -> new UnilegitCE();
             default -> new HAngleV2();
         };
     }
