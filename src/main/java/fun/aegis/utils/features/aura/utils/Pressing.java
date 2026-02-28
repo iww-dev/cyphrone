@@ -37,12 +37,16 @@ public class Pressing implements QuickImports {
             requiredDelay = 500;
         }
         
+        // Проверяем минимальную задержку между кликами
+        boolean minimumDelayPassed = lastClickPassed() >= requiredDelay;
+        
         if (is18Mode) {
-            return lastClickPassed() >= requiredDelay;
+            // В режиме 1.8 используем ТОЛЬКО CPS, без проверки cooldown
+            return minimumDelayPassed;
         }
         
+        // В режиме 1.9+ проверяем cooldown
         boolean cooldownReady = isMace || mc.player.getAttackCooldownProgress(ticks) > 0.9F;
-        boolean minimumDelayPassed = lastClickPassed() >= requiredDelay;
 
         return cooldownReady && minimumDelayPassed;
     }
