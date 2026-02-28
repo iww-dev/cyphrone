@@ -157,6 +157,30 @@ public class UnilegitCE extends RotateConstructor {
                pitchDelta += (secureRandom.nextFloat() - 0.5f) * 1.8f;
           }
 
+          // === UNILEGIT CE: ROTATION VARIANCE ===
+          // Вариация в ротации для имитации человека
+          if (secureRandom.nextFloat() < 0.08f) { // 8% шанс
+               // Случайное замедление/ускорение
+               yawDelta *= (0.85f + secureRandom.nextFloat() * 0.3f); // 0.85-1.15
+               pitchDelta *= (0.80f + secureRandom.nextFloat() * 0.4f); // 0.80-1.20
+          }
+
+          // === UNILEGIT CE: MICRO-HESITATION ===
+          // Микро-колебания для более человеческого вида
+          if (secureRandom.nextFloat() < 0.06f) { // 6% шанс
+               yawDelta *= 0.5f; // Половина движения
+               pitchDelta *= 0.5f;
+          }
+
+          // === UNILEGIT CE: OVERSHOOT CORRECTION ===
+          // Коррекция перелета для более естественного вида
+          if (Math.abs(yawDelta) > 30.0f) {
+               yawDelta *= 0.92f; // Немного снижаем если слишком большой
+          }
+          if (Math.abs(pitchDelta) > 25.0f) {
+               pitchDelta *= 0.90f; // Немного снижаем если слишком большой
+          }
+
           // === CYPHRONE ENGINE: HUMAN-LIKE OFFSET ===
           // Случайный микро-offset для более естественного вида
           float humanLikeOffsetYaw = (secureRandom.nextFloat() - 0.5f) * 1.5f;  // ±0.75 градуса
@@ -177,8 +201,8 @@ public class UnilegitCE extends RotateConstructor {
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
           // Менее агрессивная базовая скорость (ниже чем HvH V2)
-          float speedYaw = 38.0f * accelerationBoost;      // Повышено (было 31)
-          float speedPitch = 23.0f * accelerationBoost;    // Повышено (было 12)
+          float speedYaw = 32.0f * accelerationBoost;      // Ниже для легитности (было 46)
+          float speedPitch = 29.0f * accelerationBoost;    // Оставляем
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);
@@ -191,16 +215,16 @@ public class UnilegitCE extends RotateConstructor {
           // Применяем плавное ускорение (не сразу полная скорость)
           if (Math.abs(moveYaw) > Math.abs(lastSpeedYaw)) {
                // Ускорение - добавляем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.35f; // Еще плавнее
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.75f; // Еще плавнее
           } else if (Math.abs(moveYaw) < Math.abs(lastSpeedYaw)) {
                // Замедление - убираем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.45f; // Еще плавнее
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.8f; // Еще плавнее
           }
 
           if (Math.abs(movePitch) > Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.3f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.7f; // Еще плавнее
           } else if (Math.abs(movePitch) < Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.4f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.75f; // Еще плавнее
           }
 
           lastSpeedYaw = smoothYaw;

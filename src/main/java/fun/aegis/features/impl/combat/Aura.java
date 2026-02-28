@@ -130,7 +130,7 @@ public class Aura extends Module {
     private AuraDebugStats debugStats = new AuraDebugStats();
 
     SelectSetting aimMode = new SelectSetting("Наводка", "Выберите тип наводки")
-            .value("HolyWorld", "ReallyWorld", "HvH V2")
+            .value("HolyWorld", "ReallyWorld", "HvH V2", "Unilegit CE")
             .selected("HvH V2");
 
     MultiSelectSetting targetType = new MultiSelectSetting("Тип таргета", "Фильтрует весь список целей по типу")

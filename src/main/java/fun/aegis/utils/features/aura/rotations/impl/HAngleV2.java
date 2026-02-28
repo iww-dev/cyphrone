@@ -152,8 +152,8 @@ public class HAngleV2 extends RotateConstructor {
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
           // Менее агрессивная базовая скорость
-          float speedYaw = 42.0f * accelerationBoost;      // Повышено (было 34)
-          float speedPitch = 26.0f * accelerationBoost;    // Повышено (было 14)
+          float speedYaw = 38.0f * accelerationBoost;      // Оптимально (было 50)
+          float speedPitch = 32.0f * accelerationBoost;    // Оставляем
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);
@@ -166,16 +166,16 @@ public class HAngleV2 extends RotateConstructor {
           // Применяем плавное ускорение (не сразу полная скорость)
           if (Math.abs(moveYaw) > Math.abs(lastSpeedYaw)) {
                // Ускорение - добавляем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.4f; // Еще плавнее (было 0.6)
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.75f; // Повышено (было 0.4)
           } else if (Math.abs(moveYaw) < Math.abs(lastSpeedYaw)) {
                // Замедление - убираем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.5f; // Еще плавнее (было 0.7)
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.8f; // Повышено (было 0.5)
           }
           
           if (Math.abs(movePitch) > Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.35f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.7f; // Повышено (было 0.35)
           } else if (Math.abs(movePitch) < Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.45f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.75f; // Повышено (было 0.45)
           }
           
           lastSpeedYaw = smoothYaw;
