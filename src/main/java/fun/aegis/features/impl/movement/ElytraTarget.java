@@ -138,6 +138,7 @@ public class ElytraTarget extends Module {
         }
         if (mc.player.distanceTo(target) > this.elytraFindRange.getValue())
             return;
+        
         Vec3d playerPos = mc.player.getPos();
         Vec3d targetPos = target.getPos();
         Vec3d dir = playerPos.subtract(targetPos);
@@ -149,10 +150,32 @@ public class ElytraTarget extends Module {
         Vec3d desiredOffset = dir.multiply(distance);
         Vec3d futurePos = playerPos.add(desiredOffset);
         Box futureBox = mc.player.getBoundingBox().offset(desiredOffset);
-        boolean blocked = !mc.world.getBlockCollisions(mc.player, futureBox).iterator().hasNext();
-        if (blocked)
-            dir = dir.multiply(-1.0D);
-        Vec3d impulse = dir.multiply(1.0D);
-        mc.player.addVelocity(impulse.x, 0.0D, impulse.z);
+        
+        // Проверяем коллизии более аккуратно
+        boolean hasCollision = mc.world.getBlockCollisions(mc.player, futureBox).iterator().hasNext();
+        
+        // Если есть коллизия, пытаемся обойти
+        if (hasCollision) {
+            // Пытаемся повернуть влево
+            Vec3d leftDir = new Vec3d(-dir.z, 0.0D, dir.x).normalize();
+            Box leftBox = mc.player.getBoundingBox().offset(leftDir.multiply(distance));
+            if (!mc.world.getBlockCollisions(mc.player, leftBox).iterator().hasNext()) {
+                dir = leftDir;
+            } else {
+                // Пытаемся повернуть вправо
+                Vec3d rightDir = new Vec3d(dir.z, 0.0D, -dir.x).normalize();
+                Box rightBox = mc.player.getBoundingBox().offset(rightDir.multiply(distance));
+                if (!mc.world.getBlockCollisions(mc.player, rightBox).iterator().hasNext()) {
+                    dir = rightDir;
+                } else {
+                    // Если оба варианта заблокированы, летим вверх
+                    dir = new Vec3d(0.0D, 0.5D, 0.0D);
+                }
+            }
+        }
+        
+        // Добавляем импульс более мягко
+        Vec3d impulse = dir.multiply(0.5D);
+        mc.player.addVelocity(impulse.x, impulse.y, impulse.z);
     }
 }

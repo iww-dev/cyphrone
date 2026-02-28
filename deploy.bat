@@ -21,7 +21,7 @@ git add -A
 
 REM Коммитим
 echo [*] Creating commit...
-git commit -m "Auto deploy: %date% %time%"
+git commit -m "Manual deploy: %date% %time% : Some fixes or improvements"
 
 REM Принудительный пуш (force push)
 echo [*] Force pushing to main branch...

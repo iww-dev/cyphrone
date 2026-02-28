@@ -49,8 +49,6 @@ public class ModuleDescriptions {
             return "Изменяет размер хитбоксов сущностей.";
         if (module instanceof AntiBot)
             return "Обнаруживает и игнорирует ботов на сервере.";
-        if (module instanceof AutoCrystal)
-            return "Автоматизирует размещение и уничтожение кристаллов.";
         if (module instanceof AutoSprint)
             return "Автоматически включает спринт при движении.";
         if (module instanceof NoSlow)
@@ -71,8 +69,6 @@ public class ModuleDescriptions {
             return "Автоматически принимает запросы на телепортацию.";
         if (module instanceof AutoLeave)
             return "Автоматически покидает сервер при угрозе.";
-        if (module instanceof TargetPearl)
-            return "Автоматически бросает жемчужины в цель.";
         if (module instanceof AutoArmor)
             return "Автоматически надевает лучшую броню.";
         if (module instanceof NoInteract)

@@ -122,12 +122,18 @@ public class AutoBuff extends Module {
             
             script.cleanup().addTickStep(1, () -> {
                 if (mc.player != null) {
+                    // Сохраняем текущий pitch
+                    float originalPitch = mc.player.getPitch();
+                    // Устанавливаем pitch на 90 (смотрим вниз)
+                    mc.player.setPitch(90.0f);
                     mc.options.useKey.setPressed(true);
                 }
                 
                 script.cleanup().addTickStep(2, () -> {
                     if (mc.player != null) {
                         mc.options.useKey.setPressed(false);
+                        // Восстанавливаем оригинальный pitch
+                        mc.player.setPitch(mc.player.getPitch() - 90.0f);
                     }
                     
                     script.cleanup().addTickStep(3, () -> {
