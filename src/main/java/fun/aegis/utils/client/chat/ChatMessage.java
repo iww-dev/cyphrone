@@ -48,4 +48,12 @@ public class ChatMessage {
         }
     }
 
+    public static void auramiss(String message) {
+        if (MinecraftClient.getInstance().player != null) {
+            Text prefix = TextHelper.applyPredefinedGradient("Aura Miss -> ", "black_light_purple", true);
+            Text formattedMessage = prefix.copy().append(Text.literal(message));
+            MinecraftClient.getInstance().player.sendMessage(formattedMessage, false);
+        }
+    }
+
 }

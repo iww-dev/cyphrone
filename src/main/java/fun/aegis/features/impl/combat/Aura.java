@@ -60,6 +60,7 @@ import fun.aegis.utils.features.aura.debug.MissAnalyzer;
 import fun.aegis.utils.features.aura.debug.AuraDebugStats;
 import fun.aegis.features.impl.render.Hud;
 import fun.aegis.utils.math.calc.Calculate;
+import fun.aegis.utils.client.chat.ChatMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,6 +111,12 @@ public class Aura extends Module {
 
     @NonFinal
     private long lastAttackTime = 0;
+
+    @NonFinal
+    private long lastAttackAttemptTime = 0;
+
+    @NonFinal
+    private LivingEntity lastAttackTarget = null;
 
     @NonFinal
     private MissAnalyzer missAnalyzer = new MissAnalyzer();
@@ -410,6 +417,18 @@ public class Aura extends Module {
             packets.forEach(PlayerInteractionHelper::sendPacketWithOutEvent);
             packets.clear();
         }
+
+        // Отслеживание мисса - если прошло время с последней попытки атаки, но цель не получила урон
+        if (heartbeat.isValue() && lastAttackTarget != null && lastAttackAttemptTime > 0) {
+            long timeSinceAttempt = System.currentTimeMillis() - lastAttackAttemptTime;
+            if (timeSinceAttempt > 100 && timeSinceAttempt < 500) { // Проверяем в течение 500ms после попытки
+                // Если это не был успешный удар (lastAttackTime не обновился)
+                if (lastAttackTime < lastAttackAttemptTime) {
+                    analyzeMiss(lastAttackTarget);
+                    lastAttackAttemptTime = 0;
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -641,6 +660,10 @@ public class Aura extends Module {
             mc.interactionManager.attackEntity(mc.player, config.getTarget());
             mc.player.swingHand(Hand.MAIN_HAND);
             
+            // Отслеживаем попытку атаки
+            lastAttackAttemptTime = System.currentTimeMillis();
+            lastAttackTarget = config.getTarget();
+            
             // Регистрируем попадание
             debugStats.recordHit();
             missAnalyzer.resetOnHit();
@@ -797,65 +820,41 @@ public class Aura extends Module {
         float hitChanceValue = this.hitChance.getValue();
         int ping = mc.getNetworkHandler() != null ? 50 : 0;
         boolean wallBlocked = !attackSetting.isSelected("Ignore The Walls");
-        boolean outOfRange = mc.player.distanceTo(target) > attackRange.getValue();
         float targetDistance = mc.player.distanceTo(target);
-        float targetVelocity = (float) target.getVelocity().length();
-        boolean shieldActive = target.isBlocking();
-        
-        // Состояние цели
-        boolean targetSprinting = target.isSprinting();
-        boolean targetJumping = !target.isOnGround();
-        boolean targetSneaking = target.isSneaking();
-        boolean targetFlying = target.isGliding();
-        boolean targetGliding = target.isGliding();
-        boolean targetInWater = target.isTouchingWater();
-        boolean targetInLava = target.isInLava();
-        boolean targetClimbing = target.isClimbing();
-        boolean targetInvisible = target.isInvisible();
-        boolean targetInvulnerable = target.isInvulnerable();
-        boolean targetDead = !target.isAlive();
-        
-        // Параметры ротации
-        float rotationSpeed = 45.0f;
+        float playerReach = attackRange.getValue();
         float rotationAccuracy = 0.85f;
-        int packetLoss = 0;
-        boolean rotationDesync = false;
-        boolean predictionFailed = false;
-        
-        // Механика игры
-        boolean criticalHitFailed = false;
-        boolean knockbackResistance = target.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.RESISTANCE);
-        boolean armorTooStrong = false;
-        boolean enchantmentProtection = false;
-        
-        // Сетевые параметры
-        int serverTickRate = 20;
-        
-        // Состояние окружения
-        boolean blockCollision = false;
-        boolean entityDespawned = false;
-        boolean entityTeleported = false;
-        boolean entityMounted = target.hasVehicle();
-        boolean clientTickSkip = false;
+        float rotationSpeed = 45.0f;
 
-        // Используем умный анализ с несколькими причинами
-        java.util.List<MissReasonNotifier.MissReason> reasons = MissReasonNotifier.analyzeSmartMiss(
-            hitChanceValue, ping, wallBlocked, outOfRange, targetDistance, targetVelocity, shieldActive,
-            targetSprinting, targetJumping, targetSneaking, targetFlying, targetGliding,
-            targetInWater, targetInLava, targetClimbing, targetInvisible, targetInvulnerable, targetDead,
-            rotationSpeed, rotationAccuracy, packetLoss, rotationDesync, predictionFailed,
-            serverTickRate, blockCollision, entityDespawned, entityTeleported, entityMounted
+        // Используем MissAnalyzer для анализа
+        java.util.List<MissReasonNotifier.MissReason> reasons = missAnalyzer.analyzeSmartMissWithHistory(
+            target,
+            hitChanceValue,
+            ping,
+            wallBlocked,
+            playerReach,
+            targetDistance,
+            rotationAccuracy,
+            rotationSpeed
         );
 
-        // Регистрируем мисс с несколькими причинами
+        // Регистрируем мисс
         debugStats.recordMultipleMisses(reasons);
         debugStats.updateRotationAccuracy(rotationAccuracy);
         debugStats.updateAveragePing(ping);
         
-        // Отправляем уведомление с несколькими причинами
+        // Отправляем сообщения в чат
         if (reasons.size() > 1) {
+            StringBuilder reasonsText = new StringBuilder();
+            for (int i = 0; i < reasons.size(); i++) {
+                reasonsText.append(reasons.get(i).toString());
+                if (i < reasons.size() - 1) {
+                    reasonsText.append(", ");
+                }
+            }
+            ChatMessage.auramiss("Мисс: " + reasonsText.toString());
             MissReasonNotifier.notifyMultipleMisses(reasons);
         } else if (!reasons.isEmpty()) {
+            ChatMessage.auramiss("Мисс: " + reasons.get(0).toString());
             MissReasonNotifier.notifyMiss(reasons.get(0));
         }
     }
