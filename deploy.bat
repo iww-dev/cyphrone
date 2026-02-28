@@ -21,7 +21,7 @@ git add -A
 
 REM Коммитим
 echo [*] Creating commit...
-git commit -m "Manual deploy: %date% %time% : Added 3 new rotations. Sloth Cyphrone Edition (UNstable), HvH V2X Cyphrone Edition (Extended v2x from Aegis) and HvH V2X Cyphrone Edition Rage-Bypass (Its like V2X CE but with more APS (actions persec)   Enjoy this update! (On graph this is 0.4.9-6 of Aegis. )"
+git commit -m "Manual deploy: %date% %time% : Fixed HvH V2 rot. bug and ac detects (Matrix 7)"
 
 REM Принудительный пуш (force push)
 echo [*] Force pushing to main branch...

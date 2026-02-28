@@ -94,28 +94,33 @@ public class HAngleV2 extends RotateConstructor {
           float yawDelta = angleDelta.getYaw();
           float pitchDelta = angleDelta.getPitch();
 
-          // === CYPHRONE ENGINE: GOLDEN RATIO MODULE ===
-          // Динамическая скорость вращения на основе Золотого Сечения
-          double seed = (System.currentTimeMillis() % 2000) / 2000.0;
-          float chaoticSpeedYaw = (float) ((seed * PHI) % 1.0 * 30.0);
-          float chaoticSpeedPitch = (float) ((seed * (PHI * PHI)) % 1.0 * 20.0);
+          // === CYPHRONE ENGINE: DISTANCE-BASED ACCELERATION ===
+          // Ускорение при близкой дистанции (≤1 блока)
+          float accelerationBoost = 1.0f;
+          float closeRangeSpeedBoost = 1.0f;
+          if (entity instanceof net.minecraft.entity.LivingEntity target && mc.player != null) {
+               double distance = mc.player.distanceTo(target);
+               if (distance <= 1.0) {
+                    // Рандомизация ускорения 2-11% при близкой дистанции
+                    accelerationBoost = 1.02f + (secureRandom.nextFloat() * 0.09f); // 1.02 - 1.11
+                    // Повышение скорости поворота персонажа вблизи на 8-15%
+                    closeRangeSpeedBoost = 1.08f + (secureRandom.nextFloat() * 0.07f); // 1.08 - 1.15
+               }
+          }
 
-          // === CYPHRONE ENGINE: FIBONACCI SEQUENCE ADAPTER ===
-          // Адаптивная скорость на основе последовательности Фибоначчи
-          int fibIndex = (int) (Math.abs(yawDelta) * 10) % fibonacci.length;
-          float fibInfluence = fibonacci[fibIndex] / 144.0f;
-
-          float speedYaw = 35.0f + chaoticSpeedYaw + (fibInfluence * 5.0f);
-          float speedPitch = 20.0f + chaoticSpeedPitch + (fibInfluence * 3.0f);
+          // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
+          // Повышенная базовая скорость с плавностью
+          float speedYaw = 45.0f * accelerationBoost * closeRangeSpeedBoost;      // Повышено с 35
+          float speedPitch = 28.0f * accelerationBoost * closeRangeSpeedBoost;    // Повышено с 20
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);
 
-          // === CYPHRONE ENGINE: ACCELERATION DAMPING ===
-          // Случайное замедление на 2-9% для более реалистичного движения
+          // === CYPHRONE ENGINE: SMOOTH ACCELERATION DAMPING ===
+          // Плавное затухание без резких скачков (убрали случайность)
           long currentTime = System.currentTimeMillis();
-          if (currentTime - lastAccelerationUpdate > 50) {
-               accelerationFactor = 0.91f + (secureRandom.nextFloat() * 0.08f); // 0.91 - 0.99
+          if (currentTime - lastAccelerationUpdate > 100) {
+               accelerationFactor = 0.98f; // Стабильное значение для плавности
                lastAccelerationUpdate = currentTime;
           }
           moveYaw *= accelerationFactor;
@@ -124,240 +129,114 @@ public class HAngleV2 extends RotateConstructor {
           float finalYaw = currentAngle.getYaw() + moveYaw;
           float finalPitch = MathHelper.clamp(currentAngle.getPitch() + movePitch, -90F, 90F);
 
-          // === CYPHRONE ENGINE: PERLIN NOISE GENERATOR ===
-          // Плавное хаотичное движение через шум Перлина
-          float perlinValue = getPerlinNoise(noiseOffset += 0.05f * PHI);
-          float perlinJitterYaw = perlinValue * 0.2f;
-          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.15f;
+          // === CYPHRONE ENGINE: MINIMAL PERLIN NOISE ===
+          // Очень плавное хаотичное движение через шум Перлина (МИНИМАЛЬНОЕ)
+          float perlinValue = getPerlinNoise(noiseOffset += 0.02f * PHI);
+          float perlinJitterYaw = perlinValue * 0.08f;    // Чуть больше чем было (0.02), но меньше чем было (0.2)
+          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.06f; // Чуть больше чем было (0.01), но меньше чем было (0.15)
 
-          // === CYPHRONE ENGINE: LORENZ ATTRACTOR SYSTEM ===
-          // Хаотичная система для непредсказуемого поведения
-          updateLorenzAttractor();
-          float lorenzInfluence = (float) (lorenzX * 0.12f);
-
-          // === CYPHRONE ENGINE: LYAPUNOV CHAOS MEASURE ===
-          // Показатель Ляпунова для измерения хаотичности
-          float lyapunovNoise = getLyapunovNoise();
-
-          // === CYPHRONE ENGINE: HOUSE THEORY ANALYZER ===
-          // Анализ паттернов движения через теорию Хауса
-          float housePattern = applyHouseTheory(yawDelta, pitchDelta);
-
-          // === CYPHRONE ENGINE: PI CYCLE MODULE ===
-          // Циклическое движение на основе числа Пи
-          double piCycle = Math.sin((System.currentTimeMillis() % 6283) / 1000.0) * 0.1;
-
-          // === CYPHRONE ENGINE: APERIODIC JITTER SYSTEM ===
-          // Апериодический джиттер для реалистичного движения
+          // === CYPHRONE ENGINE: SMOOTH MODULATION ===
+          // Плавная модуляция без хаотичных скачков
+          float smoothModulation = (float) Math.sin((System.currentTimeMillis() % 5000) / 5000.0 * PI * 2) * 0.02f;
+          
+          // === CYPHRONE ENGINE: SUBTLE JITTER FOR REALISM ===
+          // Небольшой джиттер для реалистичности (чуть меньше чем было)
           float rotationDifference = (float) Math.hypot(yawDelta, pitchDelta);
+          float subtleJitterYaw = 0;
+          float subtleJitterPitch = 0;
           if (rotationDifference > 0.4f) {
                double time = (System.currentTimeMillis() % 10000) / 1000.0;
-               double jitterX = Math.sin(time * PHI) * 0.15;
-               double jitterY = Math.cos(time * (PHI * PHI)) * 0.15;
-
-               finalYaw += (float) jitterX + perlinJitterYaw + lorenzInfluence + lyapunovNoise + housePattern + (float) piCycle;
-               finalPitch = MathHelper.clamp(finalPitch + (float) jitterY + perlinJitterPitch, -90F, 90F);
+               subtleJitterYaw = (float) (Math.sin(time * PHI) * 0.06f);  // Уменьшено с 0.15
+               subtleJitterPitch = (float) (Math.cos(time * (PHI * PHI)) * 0.05f); // Уменьшено с 0.15
           }
 
           // === CYPHRONE ENGINE: ADVANCED MATHEMATICAL SYSTEMS ===
-          // Активные математические системы:
-          // - Множество Мандельброта: фрактальная геометрия для анализа сложности движения
-          // - Множество Жюлиа: параметрическое исследование динамических систем
-          // - Геометрия Римана: неевклидова геометрия для криволинейных траекторий
-          // - Фазовое пространство: многомерный анализ состояния ротации
-          // - Синергетика: самоорганизация в сложных системах
-          // - Топология: свойства пространства, инвариантные при непрерывных деформациях
-          
-          // === CYPHRONE ENGINE: SUBTLE MATHEMATICAL INFLUENCE ===
-          // Очень осторожное применение дополнительной математики (влияние < 0.5%)
-          if (houseCounter % 100 == 0) {
-               // Редко вычисляем параметр порядка синергетики
-               float orderParam = calculateOrderParameter(yawDelta, pitchDelta);
-               finalYaw += orderParam * 0.001f; // Минимальное влияние
-          }
+          // Активные математические системы (ТОЛЬКО ПЛАВНЫЕ):
+          // - Множество Мандельброта: фрактальная геометрия (ОЧЕНЬ редко)
+          // - Множество Жюлиа: параметрическое исследование (ОЧЕНЬ редко)
+          // - Геометрия Римана: неевклидова геометрия (ОЧЕНЬ редко)
+          // - Фазовое пространство: многомерный анализ (ОЧЕНЬ редко)
+
+          // === CYPHRONE ENGINE: MINIMAL MATHEMATICAL INFLUENCE ===
+          // Минимальное влияние - только самые плавные формулы
 
           // === CYPHRONE ENGINE: MANDELBROT SET INFLUENCE ===
-          // Фрактальная геометрия для анализа сложности движения (очень малое влияние)
-          if (houseCounter % 50 == 0) {
-               double mandelbrotValue = calculateMandelbrot(yawDelta / 45.0, pitchDelta / 45.0, 8);
-               float mandelbrotInfluence = (float) (mandelbrotValue / 8.0) * 0.0015f; // Очень малое влияние
+          // Фрактальная геометрия (ОЧЕНЬ редко, ОЧЕНЬ мало)
+          if (houseCounter % 200 == 0) {
+               double mandelbrotValue = calculateMandelbrot(yawDelta / 45.0, pitchDelta / 45.0, 6);
+               float mandelbrotInfluence = (float) (mandelbrotValue / 6.0) * 0.0008f;
                finalYaw += mandelbrotInfluence;
           }
 
           // === CYPHRONE ENGINE: JULIA SET INFLUENCE ===
-          // Параметрическое исследование динамических систем
-          if (houseCounter % 30 == 0) {
-               double juliaValue = calculateJuliaSet(yawDelta / 45.0, pitchDelta / 45.0, 12);
-               float juliaInfluence = (float) (juliaValue / 12.0) * 0.008f;
+          // Параметрическое исследование (ОЧЕНЬ редко, ОЧЕНЬ мало)
+          if (houseCounter % 250 == 0) {
+               double juliaValue = calculateJuliaSet(yawDelta / 45.0, pitchDelta / 45.0, 8);
+               float juliaInfluence = (float) (juliaValue / 8.0) * 0.0007f;
                finalPitch += juliaInfluence;
           }
 
           // === CYPHRONE ENGINE: RIEMANNIAN GEOMETRY INFLUENCE ===
-          // Неевклидова геометрия для криволинейных траекторий (чуть уменьшено)
-          if (houseCounter % 40 == 0) {
+          // Неевклидова геометрия (ОЧЕНЬ редко, ОЧЕНЬ мало)
+          if (houseCounter % 300 == 0) {
                double riemannCurvature = calculateRiemannianCurvature(yawDelta, pitchDelta);
-               float riemannInfluence = (float) (1.0 / (riemannCurvature + 1.0)) * 0.004f; // Уменьшено
+               float riemannInfluence = (float) (1.0 / (riemannCurvature + 1.0)) * 0.0006f;
                finalYaw += riemannInfluence;
           }
 
           // === CYPHRONE ENGINE: PHASE SPACE INFLUENCE ===
-          // Многомерный анализ состояния ротации
-          if (houseCounter % 35 == 0) {
+          // Многомерный анализ (ОЧЕНЬ редко, ОЧЕНЬ мало)
+          if (houseCounter % 350 == 0) {
                double phaseDistance = calculatePhaseSpaceDistance(yawDelta, pitchDelta, lastYawDelta, lastPitchDelta);
-               float phaseInfluence = (float) Math.tanh(phaseDistance / 100.0) * 0.006f;
+               float phaseInfluence = (float) Math.tanh(phaseDistance / 100.0) * 0.0005f;
                finalPitch += phaseInfluence;
           }
 
-          // === CYPHRONE ENGINE: TRIGONOMETRIC FORMULAS (1) ===
-          // Синусоидальная интерполяция для плавного движения (очень мало)
-          if (houseCounter % 60 == 0) {
-               float smoothInterp = (float) Math.sin(Math.PI * (houseCounter % 100) / 100.0) * 0.0008f;
-               finalYaw += smoothInterp;
-          }
-
-          // === CYPHRONE ENGINE: HYPERBOLIC FUNCTIONS (2) ===
-          // Гиперболические функции для нелинейного масштабирования (очень мало)
-          if (houseCounter % 45 == 0) {
-               hyperbolicsState = (float) Math.sinh(yawDelta / 90.0) * 0.0012f;
-               finalYaw += hyperbolicsState;
-          }
-
-          // === CYPHRONE ENGINE: LOGARITHMIC FUNCTIONS (3) ===
-          // Логарифмическое масштабирование (чуть чуть)
-          if (houseCounter % 50 == 0) {
-               float logScale = (float) Math.log(Math.abs(yawDelta) + 1.0) * 0.002f;
-               finalYaw += logScale;
-          }
-
-          // === CYPHRONE ENGINE: POWER FUNCTIONS (4) ===
-          // Кубический корень для мягкого масштабирования (чуть чуть)
-          if (houseCounter % 55 == 0) {
-               float cubicRoot = (float) Math.cbrt(pitchDelta / 45.0) * 0.0018f;
-               finalPitch += cubicRoot;
-          }
-
-          // === CYPHRONE ENGINE: WAVE FUNCTIONS (6) ===
-          // Синусоидальная волна для циклического движения (чуть чуть)
-          wavePhase += 0.02f;
-          if (houseCounter % 40 == 0) {
-               float sineWave = (float) Math.sin(wavePhase) * 0.0015f;
+          // === CYPHRONE ENGINE: SMOOTH WAVE MODULATION ===
+          // Плавная волна для циклического движения (ОЧЕНЬ мало)
+          wavePhase += 0.01f;
+          if (houseCounter % 150 == 0) {
+               float sineWave = (float) Math.sin(wavePhase) * 0.0008f;
                finalYaw += sineWave;
           }
 
-          // === CYPHRONE ENGINE: FRACTAL FUNCTIONS (7) ===
-          // Фрактальные функции для самоподобия (чуть чуть)
-          if (houseCounter % 65 == 0) {
-               float fractalInfluence = calculateFractalInfluence(yawDelta, pitchDelta) * 0.0014f;
-               finalPitch += fractalInfluence;
-          }
-
-          // === CYPHRONE ENGINE: GEOMETRIC FORMULAS (8) ===
-          // Геометрические формулы для анализа углов (очень мало)
-          if (houseCounter % 70 == 0) {
-               double vectorAngle = Math.atan2(pitchDelta, yawDelta);
-               float geometricInfluence = (float) Math.sin(vectorAngle) * 0.0009f;
-               finalYaw += geometricInfluence;
-          }
-
-          // === CYPHRONE ENGINE: MATRIX OPERATIONS (9) ===
-          // Матричные операции для трансформаций (мало)
-          if (houseCounter % 75 == 0) {
-               float matrixDet = yawDelta * pitchDelta; // Определитель 2x2
-               float matrixInfluence = (float) Math.tanh(matrixDet / 2000.0) * 0.0016f;
-               finalPitch += matrixInfluence;
-          }
-
-          // === CYPHRONE ENGINE: PROBABILITY DISTRIBUTIONS (10) ===
-          // Нормальное распределение для взвешивания (чуть чуть)
-          if (houseCounter % 80 == 0) {
-               float normalDist = calculateNormalDistribution(yawDelta, 0, 45.0f) * 0.0013f;
-               finalYaw += normalDist;
-          }
-
-          // === CYPHRONE ENGINE: DIFFERENTIAL EQUATIONS (13) ===
-          // Экспоненциальный рост и затухающие колебания (ОЧЕНЬ мало)
-          if (houseCounter % 85 == 0) {
-               float exponentialGrowth = (float) Math.exp(-Math.abs(yawDelta) / 100.0) * 0.0005f;
-               finalYaw += exponentialGrowth;
-          }
-
-          // === CYPHRONE ENGINE: OPTIMIZATION FUNCTIONS (14) ===
-          // Сигмоид для плавного перехода (ОЧЕНЬ мало)
-          if (houseCounter % 90 == 0) {
-               sigmoidState = calculateSigmoid(yawDelta / 45.0f) * 0.0006f;
-               finalYaw += sigmoidState;
-          }
-
-          // === CYPHRONE ENGINE: CRYPTOGRAPHIC FUNCTIONS (15) ===
-          // Линейный конгруэнтный генератор для PRNG (ОЧЕНЬ мало)
-          if (houseCounter % 95 == 0) {
-               linearCongruentialState = (1103515245L * linearCongruentialState + 12345) & 0x7fffffffL;
-               float cryptoInfluence = (linearCongruentialState / 1073741824.0f - 1.0f) * 0.0004f;
-               finalPitch += cryptoInfluence;
-          }
-
-          // === CYPHRONE ENGINE: SPECIAL CONSTANTS (16) ===
-          // Специальные константы для модуляции (ОЧЕНЬ мало)
-          if (houseCounter % 100 == 0) {
-               float aperyConstant = 1.202f;
-               float catalanConstant = 0.915f;
-               float constantInfluence = (float) Math.sin(houseCounter * aperyConstant) * catalanConstant * 0.0003f;
-               finalYaw += constantInfluence;
-          }
-
-          // === CYPHRONE ENGINE: INTERPOLATION FUNCTIONS (17) ===
-          // Кубическая интерполяция Catmull-Rom (ОЧЕНЬ мало)
-          if (houseCounter % 105 == 0) {
-               float hermiteInterp = calculateHermiteInterpolation(yawDelta, pitchDelta) * 0.0005f;
-               finalPitch += hermiteInterp;
-          }
-
-          // === CYPHRONE ENGINE: NORMALIZATION FUNCTIONS (18) ===
-          // Z-score нормализация (ОЧЕНЬ мало)
-          if (houseCounter % 110 == 0) {
-               float zScore = (yawDelta - 0) / (45.0f + 1e-6f) * 0.0004f;
-               finalYaw += zScore;
-          }
-
-          // === CYPHRONE ENGINE: DISTANCE METRICS (19) ===
-          // Манхэттенское расстояние (ОЧЕНЬ мало)
-          if (houseCounter % 115 == 0) {
-               float manhattanDist = (Math.abs(yawDelta) + Math.abs(pitchDelta)) / 90.0f * 0.0005f;
-               finalPitch += manhattanDist;
-          }
-
-          // === CYPHRONE ENGINE: FILTERS AND SMOOTHING (20) ===
+          // === CYPHRONE ENGINE: EXPONENTIAL SMOOTHING ===
           // Экспоненциальное сглаживание (ОЧЕНЬ мало)
-          if (houseCounter % 120 == 0) {
-               float alpha = 0.3f;
+          if (houseCounter % 200 == 0) {
+               float alpha = 0.2f;
                float smoothed = alpha * yawDelta + (1 - alpha) * previousYaw;
                previousYaw = smoothed;
-               finalYaw += (smoothed - yawDelta) * 0.0003f;
+               finalYaw += (smoothed - yawDelta) * 0.0002f;
           }
 
           // === CYPHRONE ENGINE: ROTATION VALIDATOR ===
           // Валидация поворота для предотвращения экстремальных скачков
-          float maxYawStep = 60.0f;
-          float maxPitchStep = 40.0f;
-          
+          float maxYawStep = 70.0f;      // Повышено с 60
+          float maxPitchStep = 50.0f;    // Повышено с 40
+
           float yawDiff = MathHelper.wrapDegrees(finalYaw - currentAngle.getYaw());
           float pitchDiff = finalPitch - currentAngle.getPitch();
-          
+
           if (Math.abs(yawDiff) > maxYawStep) {
                yawDiff = Math.copySign(maxYawStep, yawDiff);
                finalYaw = currentAngle.getYaw() + yawDiff;
           }
-          
+
           if (Math.abs(pitchDiff) > maxPitchStep) {
                pitchDiff = Math.copySign(maxPitchStep, pitchDiff);
                finalPitch = currentAngle.getPitch() + pitchDiff;
           }
-          
+
           finalPitch = MathHelper.clamp(finalPitch, -90F, 90F);
+
+          // === CYPHRONE ENGINE: APPLY SMOOTH MODULATION ===
+          finalYaw += perlinJitterYaw + smoothModulation + subtleJitterYaw;
+          finalPitch = MathHelper.clamp(finalPitch + perlinJitterPitch + subtleJitterPitch, -90F, 90F);
 
           Turns result = new Turns(finalYaw, finalPitch);
           return result.adjustSensitivity();
      }
+
 
      /**
       * CYPHRONE ENGINE: Perlin Noise Generator

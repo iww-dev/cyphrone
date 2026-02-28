@@ -26,7 +26,7 @@ public class PowerScan implements QuickImports {
      private LivingEntity lastTarget = null;
      private Vec3d lastBestPoint = null;
      private long lastScanTime = 0;
-     private static final long SCAN_INTERVAL = 50; // мс между сканами
+     private static final long SCAN_INTERVAL = 150; // мс между сканами (увеличено с 50)
 
      /**
       * CYPHRONE ENGINE: Power Scan Core
@@ -79,40 +79,32 @@ public class PowerScan implements QuickImports {
      /**
       * CYPHRONE ENGINE: Scan Point Generator
       * Генерирует точки сканирования на теле цели
-      * Намеренно создаёт много точек для точности
+      * Оптимизировано: 8 точек вместо 16 для меньшего дёрганья
       */
      private Vec3d[] generateScanPoints(LivingEntity target, Box box) {
           Vec3d targetPos = target.getPos();
           float height = target.getHeight();
           
-          // === CYPHRONE ENGINE: MULTI-POINT SCANNING ===
-          // Создаём множество точек для максимальной точности
-          Vec3d[] points = new Vec3d[16]; // 16 точек = много вычислений
+          // === CYPHRONE ENGINE: OPTIMIZED SCANNING ===
+          // 8 точек = баланс между точностью и производительностью
+          Vec3d[] points = new Vec3d[8];
           int index = 0;
 
-          // Голова (4 точки - углы)
-          points[index++] = targetPos.add(0.2f, height * 0.95f, 0.2f);
-          points[index++] = targetPos.add(-0.2f, height * 0.95f, 0.2f);
-          points[index++] = targetPos.add(0.2f, height * 0.95f, -0.2f);
-          points[index++] = targetPos.add(-0.2f, height * 0.95f, -0.2f);
+          // Голова (2 точки)
+          points[index++] = targetPos.add(0.15f, height * 0.95f, 0.15f);
+          points[index++] = targetPos.add(-0.15f, height * 0.95f, -0.15f);
 
-          // Туловище (4 точки)
-          points[index++] = targetPos.add(0.15f, height * 0.5f, 0.15f);
-          points[index++] = targetPos.add(-0.15f, height * 0.5f, 0.15f);
-          points[index++] = targetPos.add(0.15f, height * 0.5f, -0.15f);
-          points[index++] = targetPos.add(-0.15f, height * 0.5f, -0.15f);
+          // Туловище (2 точки)
+          points[index++] = targetPos.add(0.1f, height * 0.5f, 0.1f);
+          points[index++] = targetPos.add(-0.1f, height * 0.5f, -0.1f);
 
-          // Ноги (4 точки - самые ближайшие по геометрии издалека)
-          points[index++] = targetPos.add(0.15f, height * 0.15f, 0.15f);
-          points[index++] = targetPos.add(-0.15f, height * 0.15f, 0.15f);
-          points[index++] = targetPos.add(0.15f, height * 0.15f, -0.15f);
-          points[index++] = targetPos.add(-0.15f, height * 0.15f, -0.15f);
+          // Ноги (2 точки - самые ближайшие по геометрии издалека)
+          points[index++] = targetPos.add(0.1f, height * 0.15f, 0.1f);
+          points[index++] = targetPos.add(-0.1f, height * 0.15f, -0.1f);
 
-          // Центр (4 точки - резервные)
-          points[index++] = targetPos.add(0, height * 0.75f, 0);
+          // Центр (2 точки - резервные)
           points[index++] = targetPos.add(0, height * 0.5f, 0);
           points[index++] = targetPos.add(0, height * 0.25f, 0);
-          points[index++] = targetPos.add(0, 0, 0);
 
           return points;
      }
@@ -148,19 +140,19 @@ public class PowerScan implements QuickImports {
           
           // На дальних дистанциях (> 4 блоков) целимся в ноги
           if (distance > 4.0) {
-               // Ноги - индексы 8-11
-               return findClosestVisiblePoint(scanPoints, 8, 12);
+               // Ноги - индексы 4-5
+               return findClosestVisiblePoint(scanPoints, 4, 6);
           }
           
           // На средних дистанциях (2-4 блока) целимся в туловище
           if (distance > 2.0) {
-               // Туловище - индексы 4-7
-               return findClosestVisiblePoint(scanPoints, 4, 8);
+               // Туловище - индексы 2-3
+               return findClosestVisiblePoint(scanPoints, 2, 4);
           }
           
           // На близких дистанциях целимся в голову
-          // Голова - индексы 0-3
-          return findClosestVisiblePoint(scanPoints, 0, 4);
+          // Голова - индексы 0-1
+          return findClosestVisiblePoint(scanPoints, 0, 2);
      }
 
      /**
