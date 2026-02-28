@@ -10,35 +10,35 @@ import net.minecraft.util.math.Vec3d;
 import java.security.SecureRandom;
 
 /**
- * HvH V2 - Advanced rotation algorithm powered by Cyphrone Engine
- * Cyphrone Engine: High-performance combat rotation system
+ * Unilegit CE - Ultimate legitimacy rotation powered by Cyphrone Engine
+ * Cyphrone Engine: Undetectable combat rotation system
  */
-public class HAngleV2 extends RotateConstructor {
+public class UnilegitCE extends RotateConstructor {
      private final SecureRandom secureRandom = new SecureRandom();
-     
+
      // Математические константы
      private final double PHI = 1.618033988749895;           // Золотое сечение
      private final double PI = Math.PI;                      // Число Пи
      private final double E = Math.E;                        // Число Эйлера
      private final double SQRT2 = Math.sqrt(2);              // Корень из 2
      private final double SQRT5 = Math.sqrt(5);              // Корень из 5
-     
+
      // Последовательность Фибоначчи
      private final int[] fibonacci = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144};
-     
+
      // Параметры Лоренца для хаотичного движения
      private double lorenzX = 0.1, lorenzY = 0.1, lorenzZ = 0.1;
      private double lyapunovState = 0.5;
-     
+
      // Шум Перлина
      private float[] perlinNoise = new float[512];
      private float noiseOffset = 0;
-     
+
      // История для теории Хауса
      private float lastYawDelta = 0;
      private float lastPitchDelta = 0;
      private int houseCounter = 0;
-     
+
      // === CYPHRONE ENGINE: ADVANCED MATHEMATICS ===
      // Параметры для дополнительной математики
      private double mandelbrotIteration = 0;
@@ -46,31 +46,31 @@ public class HAngleV2 extends RotateConstructor {
      private double juliaSetImag = 0.27015;
      private float accelerationFactor = 1.0f;
      private long lastAccelerationUpdate = 0;
-     
+
      // Переменные для дополнительных формул
      private float exponentialSmoothing = 0.5f;
      private float previousYaw = 0;
      private float previousPitch = 0;
      private float hyperbolicsState = 0;
      private float wavePhase = 0;
-     
+
      // Переменные для новых формул
      private float sigmoidState = 0;
      private float reluState = 0;
      private long linearCongruentialState = 12345;
      private float[] movingAverageBuffer = new float[5];
      private int bufferIndex = 0;
-     
+
      // Power Scan система
      private PowerScan powerScan = new PowerScan();
-     
+
      // === CYPHRONE ENGINE: LEGITIMACY SYSTEM ===
      // Переменные для более легитного поведения
      private long lastRotationPause = 0;
      private boolean inRotationPause = false;
-     private float pauseChance = 0.08f; // 8% шанс микро-паузы (снижено с 15%)
-     private float targetAccuracy = 0.96f; // 96% точность (повышено с 92%)
-     
+     private float pauseChance = 0.06f; // 6% шанс микро-паузы (ниже чем HvH V2)
+     private float targetAccuracy = 0.94f; // 94% точность (ниже чем HvH V2)
+
      // === CYPHRONE ENGINE: HUMAN BEHAVIOR SIMULATION ===
      // Переменные для имитации человеческого поведения
      private float[] speedVariation = new float[10]; // История вариаций скорости
@@ -80,8 +80,19 @@ public class HAngleV2 extends RotateConstructor {
      private long lastFrameTime = 0;
      private float frameTimeVariation = 1.0f; // Вариация времени между кадрами
 
-     public HAngleV2() {
-          super("HvH V2");
+     // === UNILEGIT CE: ADVANCED ANTI-CHEAT BYPASS ===
+     // Переменные для обхода современных АЧ
+     private float rotationNoise = 0;
+     private long lastNoiseUpdate = 0;
+     private float[] rotationHistory = new float[20]; // История последних 20 поворотов
+     private int historyIndex = 0;
+     private float consistencyFactor = 0.85f; // Непостоянство движения
+     private boolean useRandomDelays = true; // Случайные задержки между кадрами
+     private long lastRotationTime = 0;
+     private float[] angleVariance = new float[5]; // Вариация углов
+
+     public UnilegitCE() {
+          super("Unilegit CE");
           initPerlinNoise();
      }
 
@@ -110,32 +121,46 @@ public class HAngleV2 extends RotateConstructor {
           float yawDelta = angleDelta.getYaw();
           float pitchDelta = angleDelta.getPitch();
 
+          // === UNILEGIT CE: RANDOM FRAME DELAYS ===
+          // Случайные задержки между кадрами для имитации человека
+          long currentTime = System.currentTimeMillis();
+          if (useRandomDelays && currentTime - lastRotationTime < 5 + secureRandom.nextInt(8)) {
+               return currentAngle; // Пропускаем кадр
+          }
+          lastRotationTime = currentTime;
+
           // === CYPHRONE ENGINE: LEGITIMACY SYSTEM ===
           // Микро-паузы для более естественного поведения
-          long currentTime = System.currentTimeMillis();
           if (!inRotationPause && secureRandom.nextFloat() < pauseChance) {
                inRotationPause = true;
                lastRotationPause = currentTime;
           }
-          
+
           // Выход из паузы через 17-45мс
           if (inRotationPause && currentTime - lastRotationPause > 17 + secureRandom.nextInt(28)) {
                inRotationPause = false;
           }
-          
+
           // Если в паузе - не двигаемся
           if (inRotationPause) {
                return currentAngle;
           }
-          
-          // Снижение точности на 8% для легитности
+
+          // Снижение точности на 6% для легитности (ниже чем HvH V2)
           yawDelta *= targetAccuracy;
           pitchDelta *= targetAccuracy;
-          
+
+          // === UNILEGIT CE: CONSISTENCY BREAKING ===
+          // Нарушение консистентности для обхода АЧ
+          if (secureRandom.nextFloat() < 0.12f) { // 12% шанс
+               yawDelta += (secureRandom.nextFloat() - 0.5f) * 2.5f;
+               pitchDelta += (secureRandom.nextFloat() - 0.5f) * 1.8f;
+          }
+
           // === CYPHRONE ENGINE: HUMAN-LIKE OFFSET ===
           // Случайный микро-offset для более естественного вида
-          float humanLikeOffsetYaw = (secureRandom.nextFloat() - 0.5f) * 1.2f;  // ±0.6 градуса (увеличено)
-          float humanLikeOffsetPitch = (secureRandom.nextFloat() - 0.5f) * 0.9f; // ±0.45 градуса (увеличено)
+          float humanLikeOffsetYaw = (secureRandom.nextFloat() - 0.5f) * 1.5f;  // ±0.75 градуса
+          float humanLikeOffsetPitch = (secureRandom.nextFloat() - 0.5f) * 1.1f; // ±0.55 градуса
           yawDelta += humanLikeOffsetYaw;
           pitchDelta += humanLikeOffsetPitch;
 
@@ -151,9 +176,9 @@ public class HAngleV2 extends RotateConstructor {
           }
 
           // === CYPHRONE ENGINE: SMOOTH BASE SPEEDS ===
-          // Менее агрессивная базовая скорость
-          float speedYaw = 34.0f * accelerationBoost;      // Чуть ниже (было 36)
-          float speedPitch = 14.0f * accelerationBoost;    // Повышено (было 8)
+          // Менее агрессивная базовая скорость (ниже чем HvH V2)
+          float speedYaw = 31.0f * accelerationBoost;      // Ниже (было 34)
+          float speedPitch = 12.0f * accelerationBoost;    // Ниже (было 14)
 
           float moveYaw = MathHelper.clamp(yawDelta, -speedYaw, speedYaw);
           float movePitch = MathHelper.clamp(pitchDelta, -speedPitch, speedPitch);
@@ -162,32 +187,32 @@ public class HAngleV2 extends RotateConstructor {
           // Плавное ускорение и замедление вместо линейного движения
           float smoothYaw = moveYaw;
           float smoothPitch = movePitch;
-          
+
           // Применяем плавное ускорение (не сразу полная скорость)
           if (Math.abs(moveYaw) > Math.abs(lastSpeedYaw)) {
                // Ускорение - добавляем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.4f; // Еще плавнее (было 0.6)
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.35f; // Еще плавнее
           } else if (Math.abs(moveYaw) < Math.abs(lastSpeedYaw)) {
                // Замедление - убираем постепенно
-               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.5f; // Еще плавнее (было 0.7)
+               smoothYaw = lastSpeedYaw + (moveYaw - lastSpeedYaw) * 0.45f; // Еще плавнее
           }
-          
+
           if (Math.abs(movePitch) > Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.35f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.3f; // Еще плавнее
           } else if (Math.abs(movePitch) < Math.abs(lastSpeedPitch)) {
-               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.45f; // Еще плавнее
+               smoothPitch = lastSpeedPitch + (movePitch - lastSpeedPitch) * 0.4f; // Еще плавнее
           }
-          
+
           lastSpeedYaw = smoothYaw;
           lastSpeedPitch = smoothPitch;
-          
+
           moveYaw = smoothYaw;
           movePitch = smoothPitch;
 
           // === CYPHRONE ENGINE: SMOOTH ACCELERATION DAMPING ===
           // Плавное затухание без резких скачков (убрали случайность)
           if (currentTime - lastAccelerationUpdate > 100) {
-               accelerationFactor = 0.98f; // Стабильное значение для плавности
+               accelerationFactor = 0.97f; // Еще более плавное (было 0.98)
                lastAccelerationUpdate = currentTime;
           }
           moveYaw *= accelerationFactor;
@@ -199,13 +224,13 @@ public class HAngleV2 extends RotateConstructor {
           // === CYPHRONE ENGINE: MINIMAL PERLIN NOISE ===
           // Плавное хаотичное движение через шум Перлина
           float perlinValue = getPerlinNoise(noiseOffset += 0.02f * PHI);
-          float perlinJitterYaw = perlinValue * 0.06f;    // Снижено с 0.12
-          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.02f; // Снижено с 0.08
+          float perlinJitterYaw = perlinValue * 0.04f;    // Ниже (было 0.06)
+          float perlinJitterPitch = (float) Math.sin(noiseOffset * PI) * 0.015f; // Ниже (было 0.02)
 
           // === CYPHRONE ENGINE: SMOOTH MODULATION ===
           // Плавная модуляция без хаотичных скачков
-          float smoothModulation = (float) Math.sin((System.currentTimeMillis() % 5000) / 5000.0 * PI * 2) * 0.01f;
-          
+          float smoothModulation = (float) Math.sin((System.currentTimeMillis() % 5000) / 5000.0 * PI * 2) * 0.008f;
+
           // === CYPHRONE ENGINE: SUBTLE JITTER FOR REALISM ===
           // Небольшой джиттер для реалистичности (без резкого при ударе)
           float rotationDifference = (float) Math.hypot(yawDelta, pitchDelta);
@@ -213,8 +238,8 @@ public class HAngleV2 extends RotateConstructor {
           float subtleJitterPitch = 0;
           // Убрали условие с rotationDifference - джиттер всегда применяется плавно
           double time = (System.currentTimeMillis() % 10000) / 1000.0;
-          subtleJitterYaw = (float) (Math.sin(time * PHI) * 0.02f);  // Снижено с 0.04
-          subtleJitterPitch = (float) (Math.cos(time * (PHI * PHI)) * 0.01f); // Снижено с 0.03
+          subtleJitterYaw = (float) (Math.sin(time * PHI) * 0.015f);  // Ниже (было 0.02)
+          subtleJitterPitch = (float) (Math.cos(time * (PHI * PHI)) * 0.008f); // Ниже (было 0.01)
 
           // === CYPHRONE ENGINE: ADVANCED MATHEMATICAL SYSTEMS ===
           // Активные математические системы (ТОЛЬКО ПЛАВНЫЕ):
@@ -228,57 +253,57 @@ public class HAngleV2 extends RotateConstructor {
 
           // === CYPHRONE ENGINE: MANDELBROT SET INFLUENCE ===
           // Фрактальная геометрия (ОЧЕНЬ редко, ОЧЕНЬ мало)
-          if (houseCounter % 200 == 0) {
+          if (houseCounter % 250 == 0) { // Реже (было 200)
                double mandelbrotValue = calculateMandelbrot(yawDelta / 45.0, pitchDelta / 45.0, 6);
-               float mandelbrotInfluence = (float) (mandelbrotValue / 6.0) * 0.0003f; // Снижено с 0.0008
+               float mandelbrotInfluence = (float) (mandelbrotValue / 6.0) * 0.0001f; // Ниже (было 0.0003)
                finalYaw += mandelbrotInfluence;
           }
 
           // === CYPHRONE ENGINE: JULIA SET INFLUENCE ===
           // Параметрическое исследование (ОЧЕНЬ редко, ОЧЕНЬ мало)
-          if (houseCounter % 250 == 0) {
+          if (houseCounter % 300 == 0) { // Реже (было 250)
                double juliaValue = calculateJuliaSet(yawDelta / 45.0, pitchDelta / 45.0, 8);
-               float juliaInfluence = (float) (juliaValue / 8.0) * 0.0002f; // Снижено с 0.0007
+               float juliaInfluence = (float) (juliaValue / 8.0) * 0.00008f; // Ниже (было 0.0002)
                finalPitch += juliaInfluence;
           }
 
           // === CYPHRONE ENGINE: RIEMANNIAN GEOMETRY INFLUENCE ===
           // Неевклидова геометрия (ОЧЕНЬ редко, ОЧЕНЬ мало)
-          if (houseCounter % 300 == 0) {
+          if (houseCounter % 350 == 0) { // Реже (было 300)
                double riemannCurvature = calculateRiemannianCurvature(yawDelta, pitchDelta);
-               float riemannInfluence = (float) (1.0 / (riemannCurvature + 1.0)) * 0.0002f; // Снижено с 0.0006
+               float riemannInfluence = (float) (1.0 / (riemannCurvature + 1.0)) * 0.00009f; // Ниже (было 0.0002)
                finalYaw += riemannInfluence;
           }
 
           // === CYPHRONE ENGINE: PHASE SPACE INFLUENCE ===
           // Многомерный анализ (ОЧЕНЬ редко, ОЧЕНЬ мало)
-          if (houseCounter % 350 == 0) {
+          if (houseCounter % 400 == 0) { // Реже (было 350)
                double phaseDistance = calculatePhaseSpaceDistance(yawDelta, pitchDelta, lastYawDelta, lastPitchDelta);
-               float phaseInfluence = (float) Math.tanh(phaseDistance / 100.0) * 0.0002f; // Снижено с 0.0005
+               float phaseInfluence = (float) Math.tanh(phaseDistance / 100.0) * 0.00007f; // Ниже (было 0.0002)
                finalPitch += phaseInfluence;
           }
 
           // === CYPHRONE ENGINE: SMOOTH WAVE MODULATION ===
           // Плавная волна для циклического движения (ОЧЕНЬ мало)
           wavePhase += 0.01f;
-          if (houseCounter % 150 == 0) {
-               float sineWave = (float) Math.sin(wavePhase) * 0.0003f; // Снижено с 0.0008
+          if (houseCounter % 180 == 0) { // Реже (было 150)
+               float sineWave = (float) Math.sin(wavePhase) * 0.0001f; // Ниже (было 0.0003)
                finalYaw += sineWave;
           }
 
           // === CYPHRONE ENGINE: EXPONENTIAL SMOOTHING ===
           // Экспоненциальное сглаживание (ОЧЕНЬ мало)
-          if (houseCounter % 200 == 0) {
+          if (houseCounter % 220 == 0) { // Реже (было 200)
                float alpha = 0.2f;
                float smoothed = alpha * yawDelta + (1 - alpha) * previousYaw;
                previousYaw = smoothed;
-               finalYaw += (smoothed - yawDelta) * 0.00008f; // Снижено с 0.0002
+               finalYaw += (smoothed - yawDelta) * 0.00004f; // Ниже (было 0.00008)
           }
 
           // === CYPHRONE ENGINE: ROTATION VALIDATOR ===
           // Валидация поворота для предотвращения экстремальных скачков
-          float maxYawStep = 70.0f;      // Повышено с 60
-          float maxPitchStep = 50.0f;    // Повышено с 40
+          float maxYawStep = 65.0f;      // Ниже (было 70)
+          float maxPitchStep = 45.0f;    // Ниже (было 50)
 
           float yawDiff = MathHelper.wrapDegrees(finalYaw - currentAngle.getYaw());
           float pitchDiff = finalPitch - currentAngle.getPitch();
@@ -303,7 +328,6 @@ public class HAngleV2 extends RotateConstructor {
           return result.adjustSensitivity();
      }
 
-
      /**
       * CYPHRONE ENGINE: Perlin Noise Generator
       * Плавное хаотичное движение через шум Перлина
@@ -325,15 +349,12 @@ public class HAngleV2 extends RotateConstructor {
           double rho = 28.0;
           double beta = 8.0 / 3.0;
           double dt = 0.001;
-
           double dxdt = sigma * (lorenzY - lorenzX);
           double dydt = lorenzX * (rho - lorenzZ) - lorenzY;
           double dzdt = lorenzX * lorenzY - beta * lorenzZ;
-
           lorenzX += dxdt * dt;
           lorenzY += dydt * dt;
           lorenzZ += dzdt * dt;
-
           double magnitude = Math.sqrt(lorenzX * lorenzX + lorenzY * lorenzY + lorenzZ * lorenzZ);
           if (magnitude > 0) {
                lorenzX /= magnitude;
@@ -361,18 +382,14 @@ public class HAngleV2 extends RotateConstructor {
       */
      private float applyHouseTheory(float yawDelta, float pitchDelta) {
           houseCounter++;
-          
           float yawChange = Math.abs(yawDelta - lastYawDelta);
           float pitchChange = Math.abs(pitchDelta - lastPitchDelta);
-          
           lastYawDelta = yawDelta;
           lastPitchDelta = pitchDelta;
-          
           if (yawChange < 0.5f && pitchChange < 0.5f) {
                int pattern = fibonacci[houseCounter % fibonacci.length];
                return (float) Math.sin(houseCounter * PI / pattern) * 0.08f;
           }
-          
           return 0;
      }
 
@@ -427,7 +444,6 @@ public class HAngleV2 extends RotateConstructor {
           double theta = Math.toRadians(yawDelta);
           double phi = Math.toRadians(pitchDelta);
           double sinTheta = Math.sin(theta);
-          
           // Гауссова кривизна сферы
           return 1.0 / (sinTheta * sinTheta + 1e-6);
      }
@@ -437,14 +453,12 @@ public class HAngleV2 extends RotateConstructor {
       * Многомерный анализ состояния ротации
       * Вычисляет расстояние в фазовом пространстве
       */
-     private double calculatePhaseSpaceDistance(float yawDelta, float pitchDelta, 
-                                                float lastYaw, float lastPitch) {
+     private double calculatePhaseSpaceDistance(float yawDelta, float pitchDelta, float lastYaw, float lastPitch) {
           // Евклидово расстояние в 4D фазовом пространстве
           double dq1 = yawDelta - lastYaw;
           double dq2 = pitchDelta - lastPitch;
           double dp1 = (yawDelta * yawDelta) - (lastYaw * lastYaw);
           double dp2 = (pitchDelta * pitchDelta) - (lastPitch * lastPitch);
-          
           return Math.sqrt(dq1*dq1 + dq2*dq2 + dp1*dp1 + dp2*dp2);
      }
 
