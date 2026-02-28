@@ -47,6 +47,7 @@ public class StrikeManager implements QuickImports {
     private boolean prevSprinting;
 
     void tick() {
+        // Таймеры обновляются автоматически
     }
 
     void onPacket(PacketEvent e) {
@@ -69,7 +70,7 @@ public class StrikeManager implements QuickImports {
     private static final long SPRINT_COOLDOWN_MS = 200;
 
     void handleAttack(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        if (config == null || config.getTarget() == null)
+        if (config == null || config.getTarget() == null || mc.player == null)
             return;
 
         if (canAttack(config, 0))
@@ -105,7 +106,7 @@ public class StrikeManager implements QuickImports {
                     predictedPos.y + target.getHeight(),
                     predictedPos.z + target.getWidth() / 2);
 
-            if (mc.player == null)
+            if (mc.player == null || mc.interactionManager == null)
                 return;
 
             Vec3d eyePos = mc.player.getEyePos();
@@ -127,7 +128,7 @@ public class StrikeManager implements QuickImports {
         }
 
         if (sprintMode != null && sprintMode.equals("Packet")) {
-            if (mc.player != null) {
+            if (mc.player != null && mc.interactionManager != null) {
                 mc.player.setSprinting(false);
                 mc.player.sendSprintingPacket();
             }
@@ -152,10 +153,11 @@ public class StrikeManager implements QuickImports {
         }
         String sprintMode = getSprintMode();
         if (sprintMode.equals("Legit")) {
-            // HolyWorld должен работать со спринтом
+            // HolyWorld должен работать со спринтом - не отключаем его
             if (Aura.getInstance() != null && Aura.getInstance().getAimMode().isSelected("HolyWorld")) {
                 return;
             }
+            // Для остальных режимов отключаем спринт перед атакой
             if (mc.player.isSprinting() && getTargetDistance() <= getAttackRange()) {
                 AutoSprint.tickStop = 2;
                 mc.options.sprintKey.setPressed(false);
@@ -167,17 +169,11 @@ public class StrikeManager implements QuickImports {
     }
 
     void postAttackEntity(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        // Включаем спринт обратно после атаки если нужно
-        String sprintMode = getSprintMode();
-        if (sprintMode != null && sprintMode.equals("Legit")) {
-            // HolyWorld должен работать со спринтом - включаем его обратно
-            if (Aura.getInstance() != null && Aura.getInstance().getAimMode().isSelected("HolyWorld")) {
-                if (mc.player != null && !mc.player.isSprinting() && mc.player.input.hasForwardMovement()) {
-                    mc.options.sprintKey.setPressed(true);
-                    mc.player.setSprinting(true);
-                }
-            }
-        }
+        if (config == null || mc.player == null)
+            return;
+        
+        // Сбрасываем таймеры после атаки
+        shieldWatch.reset();
     }
 
     void attackEntity(StrikerConstructor.AttackPerpetratorConfigurable config) {
@@ -234,14 +230,15 @@ public class StrikeManager implements QuickImports {
         if (config == null || config.getTarget() == null || mc.player == null || mc.interactionManager == null)
             return;
 
-        if (Aura.getInstance() != null && Aura.getInstance().isState()) {
-            Aura.getInstance().reach();
+        Aura aura = Aura.getInstance();
+        if (aura != null && aura.isState()) {
+            aura.reach();
         }
 
         float chance = Calculate.getRandom(0, 100);
-        if (Aura.getInstance() != null && Aura.getInstance().isState()
-                && Aura.getInstance().getAttackSetting().isSelected("Hit Chance")) {
-            if (chance < Aura.getInstance().getHitChance().getValue()) {
+        if (aura != null && aura.isState()
+                && aura.getAttackSetting().isSelected("Hit Chance")) {
+            if (chance < aura.getHitChance().getValue()) {
                 mc.interactionManager.attackEntity(mc.player, config.getTarget());
             }
         } else if (TriggerBot.getInstance() != null && TriggerBot.getInstance().isState()

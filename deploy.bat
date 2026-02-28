@@ -21,7 +21,7 @@ git add -A
 
 REM Коммитим
 echo [*] Creating commit...
-git commit -m "Manual deploy: %date% %time% : Fixed HvH V2 rot. bug and ac detects (Matrix 7) (I tried to fix...) & Added Unilegit CE Rotation!"
+git commit -m "Manual deploy: %date% %time% : Engine 002"
 
 REM Принудительный пуш (force push)
 echo [*] Force pushing to main branch...

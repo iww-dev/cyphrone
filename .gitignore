@@ -5,6 +5,8 @@ gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
 
+baseSRC/
+
 # IDE
 .idea/
 *.iml

@@ -55,12 +55,8 @@ import fun.aegis.display.hud.Notifications;
 import fun.aegis.utils.features.aura.striking.StrikeManager;
 import fun.aegis.utils.features.aura.striking.StrikerConstructor;
 import fun.aegis.utils.features.aura.target.TargetFinder;
-import fun.aegis.utils.features.aura.debug.MissReasonNotifier;
-import fun.aegis.utils.features.aura.debug.MissAnalyzer;
-import fun.aegis.utils.features.aura.debug.AuraDebugStats;
 import fun.aegis.features.impl.render.Hud;
 import fun.aegis.utils.math.calc.Calculate;
-import fun.aegis.utils.client.chat.ChatMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,11 +66,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-/**
- * CYPHRONE ENGINE: Advanced Combat System
- * High-performance aura module with mathematical precision targeting
- * Powered by Cyphrone Engine - Next Generation Combat Framework
- */
 public class Aura extends Module {
 
     private static final float RANGE_MARGIN = 0.253F;
@@ -114,24 +105,9 @@ public class Aura extends Module {
     @NonFinal
     private Random random = new Random();
 
-    @NonFinal
-    private long lastAttackTime = 0;
-
-    @NonFinal
-    private long lastAttackAttemptTime = 0;
-
-    @NonFinal
-    private LivingEntity lastAttackTarget = null;
-
-    @NonFinal
-    private MissAnalyzer missAnalyzer = new MissAnalyzer();
-
-    @NonFinal
-    private AuraDebugStats debugStats = new AuraDebugStats();
-
     SelectSetting aimMode = new SelectSetting("Наводка", "Выберите тип наводки")
-            .value("HolyWorld", "ReallyWorld", "HvH V2", "Unilegit CE")
-            .selected("HvH V2");
+            .value("None", "Legit Snap", "ReallyWorld", "HolyWorld", "HvH", "HvH V2", "HvH V2X", "Matrix")
+            .selected("Legit Snap");
 
     MultiSelectSetting targetType = new MultiSelectSetting("Тип таргета", "Фильтрует весь список целей по типу")
             .value("Players", "Mobs", "Animals", "Friends", "Armor Stand")
@@ -195,9 +171,6 @@ public class Aura extends Module {
     SliderSettings reachSpoofDistance = new SliderSettings("Reach Distance", "Дистанция спуфа позиции")
             .setValue(3.3f).range(3.0F, 6F).visible(() -> reachEnabled.isValue());
 
-    BooleanSetting heartbeat = new BooleanSetting("Heartbeat", "Пульсирующий эффект при атаке")
-            .setValue(false);
-
     public Aura() {
         super("Aura", ModuleCategory.COMBAT);
         setup(
@@ -223,8 +196,7 @@ public class Aura extends Module {
                 fovCircleEnabled,
                 fovCircleThickness,
                 fovCircleColor,
-                fovCircleAlpha,
-                heartbeat);
+                fovCircleAlpha);
         fovCircleRenderer = new FovCircleRenderer();
         Aegis.getInstance().getEventManager().register(fovCircleRenderer);
     }
@@ -422,18 +394,6 @@ public class Aura extends Module {
             packets.forEach(PlayerInteractionHelper::sendPacketWithOutEvent);
             packets.clear();
         }
-
-        // Отслеживание мисса - если прошло время с последней попытки атаки, но цель не получила урон
-        if (heartbeat.isValue() && lastAttackTarget != null && lastAttackAttemptTime > 0) {
-            long timeSinceAttempt = System.currentTimeMillis() - lastAttackAttemptTime;
-            if (timeSinceAttempt > 100 && timeSinceAttempt < 500) { // Проверяем в течение 500ms после попытки
-                // Если это не был успешный удар (lastAttackTime не обновился)
-                if (lastAttackTime < lastAttackAttemptTime) {
-                    analyzeMiss(lastAttackTarget);
-                    lastAttackAttemptTime = 0;
-                }
-            }
-        }
     }
 
     @EventHandler
@@ -524,22 +484,36 @@ public class Aura extends Module {
         boolean elytraMode = mc.player.isGliding() && attackSetting.isSelected("Elytra possibilities");
 
         if (fakeRotate && target != null) {
-            controller.setFakeRotation(rotation.getAngle());
+            FakeAngle fake = new FakeAngle();
+            Turns fakeRot = fake.limitAngleChange(controller.getRotation(), rotation.getAngle(), rotation.getVec(),
+                    target);
+            controller.setFakeRotation(fakeRot);
         }
         fakeRotate = false;
         switch (aimMode.getSelected()) {
+
             case "HolyWorld" -> {
                 if (attackHandler.canAttack(config, 10) || !attackHandler.getAttackTimer().finished(150)) {
                     controller.rotateTo(rotation, target, 10, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
                 }
             }
-            case "ReallyWorld" -> {
+
+            case "Legit Snap" -> {
+                if (attackHandler.canAttack(config, 1) || !attackHandler.getAttackTimer().finished(40)) {
+                    controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
+                }
+            }
+
+            case "ReallyWorld", "Snap" -> {
                 controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
             }
-            case "HvH V2" -> {
+
+            case "Matrix", "HvH", "HvH V2", "HvH V2X" -> {
                 controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
             }
+
         }
+        ;
 
         if (shouldRotate && !aimMode.isSelected("TriggerBot")) {
             controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
@@ -635,7 +609,28 @@ public class Aura extends Module {
 
     @EventHandler
     public void onmotion(MotionEvent event) {
-
+        // Обновляем позицию для reach spoof если включено
+        if (reachEnabled.isValue() && target != null && mc.player != null) {
+            float reachDistance = reach();
+            if (reachDistance > attackRange.getValue() + RANGE_MARGIN) {
+                Vec3d playerPos = mc.player.getPos();
+                Vec3d targetPos = target.getPos();
+                Vec3d direction = targetPos.subtract(playerPos).normalize();
+                
+                double moveDistance = reachDistance - (attackRange.getValue() + RANGE_MARGIN);
+                Vec3d spoofedPos = playerPos.add(direction.multiply(moveDistance));
+                
+                if (mc.player.networkHandler != null) {
+                    PlayerInteractionHelper.sendPacketWithOutEvent(
+                            new PlayerMoveC2SPacket.PositionAndOnGround(
+                                    spoofedPos.x,
+                                    spoofedPos.y,
+                                    spoofedPos.z,
+                                    mc.player.isOnGround(),
+                                    mc.player.horizontalCollision));
+                }
+            }
+        }
     }
 
     private void performTriggerAttack(StrikerConstructor.AttackPerpetratorConfigurable config) {
@@ -664,35 +659,26 @@ public class Aura extends Module {
                 || targetBox.raycast(eyePos, eyePos.add(lookVec.multiply(config.getMaximumRange()))).isPresent()) {
             mc.interactionManager.attackEntity(mc.player, config.getTarget());
             mc.player.swingHand(Hand.MAIN_HAND);
-            
-            // Отслеживаем попытку атаки
-            lastAttackAttemptTime = System.currentTimeMillis();
-            lastAttackTarget = config.getTarget();
-            
-            // Регистрируем попадание
-            debugStats.recordHit();
-            missAnalyzer.resetOnHit();
-            
-            if (heartbeat.isValue()) {
-                lastAttackTime = System.currentTimeMillis();
-            }
         }
     }
 
     public RotateConstructor getSmoothMode() {
         if (mc.player == null)
-            return new HAngleV2();
+            return new LinearConstructor();
 
         if (mc.player.isGliding() && attackSetting.isSelected("Elytra possibilities")
                 && !aimMode.isSelected("Trigger Bot")) {
-            return new HAngleV2();
+            return new LinearConstructor();
         }
         return switch (aimMode.getSelected()) {
             case "HolyWorld" -> new HWAngle();
-            case "ReallyWorld" -> new RWAngle();
+            case "HvH" -> new HAngle();
             case "HvH V2" -> new HAngleV2();
-            case "Unilegit CE" -> new UnilegitCE();
-            default -> new HAngleV2();
+            case "HvH V2X" -> new HAngleV2X();
+            case "ReallyWorld" -> new RWAngle();
+            case "Legit Snap" -> new SnapAngle();
+            case "Matrix" -> new MatrixAdvancedPredictor();
+            default -> new LinearConstructor();
         };
     }
 
@@ -796,77 +782,5 @@ public class Aura extends Module {
 
     public SliderSettings getCps() {
         return cps;
-    }
-
-    public boolean isHeartbeatActive() {
-        if (!heartbeat.isValue()) return false;
-        long timeSinceAttack = System.currentTimeMillis() - lastAttackTime;
-        return timeSinceAttack < 500; // Heartbeat длится 500ms
-    }
-
-    public float getHeartbeatIntensity() {
-        if (!isHeartbeatActive()) return 0.0f;
-        long timeSinceAttack = System.currentTimeMillis() - lastAttackTime;
-        float progress = timeSinceAttack / 500.0f;
-        return (float) Math.sin(progress * Math.PI) * 0.5f + 0.5f;
-    }
-
-    public AuraDebugStats getDebugStats() {
-        return debugStats;
-    }
-
-    public MissAnalyzer getMissAnalyzer() {
-        return missAnalyzer;
-    }
-
-    public void analyzeMiss(LivingEntity target) {
-        // === CYPHRONE ENGINE: MISS ANALYZER SYSTEM ===
-        // Advanced miss detection and analysis powered by Cyphrone Engine
-        if (target == null || mc.player == null) return;
-
-        // Базовые параметры
-        float hitChanceValue = this.hitChance.getValue();
-        int ping = mc.getNetworkHandler() != null ? 50 : 0;
-        boolean wallBlocked = !attackSetting.isSelected("Ignore The Walls");
-        float targetDistance = mc.player.distanceTo(target);
-        float playerReach = attackRange.getValue();
-        float rotationAccuracy = 0.85f;
-        float rotationSpeed = 45.0f;
-
-        // === CYPHRONE ENGINE: INTELLIGENT MISS DETECTION ===
-        // Используем MissAnalyzer для анализа
-        java.util.List<MissReasonNotifier.MissReason> reasons = missAnalyzer.analyzeSmartMissWithHistory(
-            target,
-            hitChanceValue,
-            ping,
-            wallBlocked,
-            playerReach,
-            targetDistance,
-            rotationAccuracy,
-            rotationSpeed
-        );
-
-        // === CYPHRONE ENGINE: STATISTICS RECORDER ===
-        // Регистрируем мисс
-        debugStats.recordMultipleMisses(reasons);
-        debugStats.updateRotationAccuracy(rotationAccuracy);
-        debugStats.updateAveragePing(ping);
-        
-        // === CYPHRONE ENGINE: NOTIFICATION SYSTEM ===
-        // Отправляем сообщения в чат
-        if (reasons.size() > 1) {
-            StringBuilder reasonsText = new StringBuilder();
-            for (int i = 0; i < reasons.size(); i++) {
-                reasonsText.append(reasons.get(i).toString());
-                if (i < reasons.size() - 1) {
-                    reasonsText.append(", ");
-                }
-            }
-            ChatMessage.auramiss("Мисс: " + reasonsText.toString());
-            MissReasonNotifier.notifyMultipleMisses(reasons);
-        } else if (!reasons.isEmpty()) {
-            ChatMessage.auramiss("Мисс: " + reasons.get(0).toString());
-            MissReasonNotifier.notifyMiss(reasons.get(0));
-        }
     }
 }
