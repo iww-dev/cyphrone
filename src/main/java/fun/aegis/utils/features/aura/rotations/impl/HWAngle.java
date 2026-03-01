@@ -469,15 +469,15 @@ public class HWAngle extends RotateConstructor {
         if (!attackF && tick == 0 && reactionDelayEnd == 0) {
             // Плавно возвращаем к текущему углу камеры
             float returnSpeed = 15.0f; // Скорость возврата
-            float yawDiff = MathHelper.wrapDegrees(currentAngle.getYaw() - result.getYaw());
-            float pitchDiff = currentAngle.getPitch() - result.getPitch();
+            float returnYawDiff = MathHelper.wrapDegrees(currentAngle.getYaw() - result.getYaw());
+            float returnPitchDiff = currentAngle.getPitch() - result.getPitch();
             
-            float yawStep = Math.min(Math.abs(yawDiff), returnSpeed);
-            float pitchStep = Math.min(Math.abs(pitchDiff), returnSpeed);
+            float returnYawStep = Math.min(Math.abs(returnYawDiff), returnSpeed);
+            float returnPitchStep = Math.min(Math.abs(returnPitchDiff), returnSpeed);
             
             result = new Turns(
-                result.getYaw() + MathHelper.clamp(yawDiff, -yawStep, yawStep),
-                MathHelper.clamp(result.getPitch() + MathHelper.clamp(pitchDiff, -pitchStep, pitchStep), -90F, 90F)
+                result.getYaw() + MathHelper.clamp(returnYawDiff, -returnYawStep, returnYawStep),
+                MathHelper.clamp(result.getPitch() + MathHelper.clamp(returnPitchDiff, -returnPitchStep, returnPitchStep), -90F, 90F)
             );
         }
         
