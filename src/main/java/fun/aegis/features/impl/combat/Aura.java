@@ -483,8 +483,9 @@ public class Aura extends Module {
         TurnsConfig rotationConfig = getRotationConfig();
 
         boolean elytraMode = mc.player.isGliding() && attackSetting.isSelected("Elytra possibilities");
+        
+        // Применяем ротацию только один раз, в зависимости от режима
         switch (aimMode.getSelected()) {
-
             case "HolyWorld" -> {
                 if (attackHandler.canAttack(config, 10) || !attackHandler.getAttackTimer().finished(150)) {
                     controller.rotateTo(rotation, target, 10, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
@@ -497,23 +498,16 @@ public class Aura extends Module {
                 }
             }
 
-            case "ReallyWorld", "Snap" -> {
+            case "ReallyWorld", "Snap", "Matrix", "HvH", "HvH V2", "HvH V2X" -> {
                 controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
             }
 
-            case "Matrix", "HvH", "HvH V2", "HvH V2X" -> {
-                controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
+            default -> {
+                // Для остальных режимов применяем базовую ротацию
+                if (!aimMode.isSelected("TriggerBot")) {
+                    controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
+                }
             }
-
-        }
-        ;
-
-        if (shouldRotate && !aimMode.isSelected("TriggerBot")) {
-            controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
-        }
-
-        if (elytraMode && !aimMode.isSelected("TriggerBot")) {
-            controller.rotateTo(rotation, target, 1, rotationConfig, TaskPriority.HIGH_IMPORTANCE_1, this);
         }
     }
 

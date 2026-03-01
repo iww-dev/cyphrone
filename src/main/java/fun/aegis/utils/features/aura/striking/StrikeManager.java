@@ -176,20 +176,18 @@ public class StrikeManager implements QuickImports {
             if (!predictedBox.raycast(eyePos, eyePos.add(lookVec.multiply(config.getMaximumRange()))).isPresent()) {
                 return;
             }
-
-            if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
-                return;
-        } else {
-            if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
-                return;
         }
+
+        // Проверяем raycast и canAttack один раз
+        if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
+            return;
 
         String sprintMode = getSprintMode();
-        if (sprintMode != null && sprintMode.equals("Legit") && !isSprinting()) {
-            attackEntity(config);
-        }
-
-        if (sprintMode != null && sprintMode.equals("Packet")) {
+        if (sprintMode != null && sprintMode.equals("Legit")) {
+            if (!isSprinting()) {
+                attackEntity(config);
+            }
+        } else if (sprintMode != null && sprintMode.equals("Packet")) {
             if (mc.player != null && mc.interactionManager != null) {
                 mc.player.setSprinting(false);
                 mc.player.sendSprintingPacket();
@@ -214,7 +212,7 @@ public class StrikeManager implements QuickImports {
             shieldWatch.reset();
         }
         String sprintMode = getSprintMode();
-        if (sprintMode.equals("Legit")) {
+        if (sprintMode != null && sprintMode.equals("Legit")) {
             // HolyWorld должен работать со спринтом - не отключаем его
             if (Aura.getInstance() != null && Aura.getInstance().getAimMode().isSelected("HolyWorld")) {
                 return;
@@ -240,8 +238,9 @@ public class StrikeManager implements QuickImports {
     }
 
     void attackEntity(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        if (Aura.getInstance().isState() && Aura.getInstance().getAttackSetting().isSelected("Fake Lag")) {
-            Aura.getInstance().tickStop = 1;
+        Aura aura = Aura.getInstance();
+        if (aura != null && aura.isState() && aura.getAttackSetting().isSelected("Fake Lag")) {
+            aura.tickStop = 1;
         }
         attack(config);
         breakShield(config);
@@ -315,26 +314,24 @@ public class StrikeManager implements QuickImports {
         // Применяем вариативность к шансу попадания
         float adjustedChance = chance * critChanceVariation;
         
+        boolean shouldAttack = false;
+        
         if (aura != null && aura.isState()
                 && aura.getAttackSetting().isSelected("Hit Chance")) {
-            if (adjustedChance < aura.getHitChance().getValue()) {
-                mc.interactionManager.attackEntity(mc.player, config.getTarget());
-                // КРИТИЧНО: Обновляем время последнего клика для CPS
-                clickScheduler.recalculate();
-            }
+            shouldAttack = adjustedChance < aura.getHitChance().getValue();
         } else if (TriggerBot.getInstance() != null && TriggerBot.getInstance().isState()
                 && TriggerBot.getInstance().attackSetting.isSelected("Hit Chance")) {
-            if (adjustedChance < TriggerBot.getInstance().hitChance.getValue()) {
-                mc.interactionManager.attackEntity(mc.player, config.getTarget());
-                // КРИТИЧНО: Обновляем время последнего клика для CPS
-                clickScheduler.recalculate();
-            }
+            shouldAttack = adjustedChance < TriggerBot.getInstance().hitChance.getValue();
         } else {
-            mc.interactionManager.attackEntity(mc.player, config.getTarget());
-            // КРИТИЧНО: Обновляем время последнего клика для CPS
-            clickScheduler.recalculate();
+            // Если Hit Chance не выбран, всегда атакуем
+            shouldAttack = true;
         }
-        mc.player.swingHand(Hand.MAIN_HAND);
+        
+        if (shouldAttack) {
+            mc.interactionManager.attackEntity(mc.player, config.getTarget());
+            clickScheduler.recalculate();
+            mc.player.swingHand(Hand.MAIN_HAND);
+        }
     }
 
     private boolean isSprinting() {

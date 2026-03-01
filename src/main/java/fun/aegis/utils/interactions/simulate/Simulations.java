@@ -103,6 +103,9 @@ public class Simulations implements QuickImports {
             } else {
                 bodyYaw = movementYaw;
             }
+        } else {
+            // Если нет движения, тело должно следовать за головой
+            bodyYaw = yaw;
         }
 
         if (mc.player != null && mc.player.handSwingProgress - 0.2F > 0F) {
@@ -110,7 +113,9 @@ public class Simulations implements QuickImports {
         }
 
         float deltaYaw = MathHelper.wrapDegrees(bodyYaw - prevBodyYaw);
-        bodyYaw = prevBodyYaw + deltaYaw * 0.3F;
+        // Ограничиваем максимальный поворот тела за один тик до 15 градусов
+        deltaYaw = MathHelper.clamp(deltaYaw, -15.0F, 15.0F);
+        bodyYaw = prevBodyYaw + deltaYaw;
 
         float yawOffsetDiff = MathHelper.wrapDegrees(yaw - bodyYaw);
         float maxHeadRotation = 52.0F;

@@ -26,11 +26,6 @@ public class HAngleV2X extends RotateConstructor {
      private Turns lastTargetRot;
      private final List<Vec3d> pathPoints = new ArrayList<>();
      private double staticChaosX = 0.5;
-     
-     // Velocity prediction для спидов
-     private Vec3d lastEnemyPos = null;
-     private long lastVelocityCheckTime = 0;
-     private Vec3d predictedEnemyVelocity = Vec3d.ZERO;
 
      public HAngleV2X() {
           super("HvH V2X");
@@ -44,42 +39,11 @@ public class HAngleV2X extends RotateConstructor {
 
      @Override
      public Turns limitAngleChange(Turns currentAngle, Turns targetAngle, Vec3d vec3d, Entity entity) {
-          if (!(entity instanceof LivingEntity target)) {
-               // Сбрасываем кэш когда нет таргета
-               lastEnemyPos = null;
-               lastTargetRot = null;
-               predictedEnemyVelocity = Vec3d.ZERO;
+          if (!(entity instanceof LivingEntity target))
                return targetAngle;
-          }
 
           Vec3d bestPoint = scanHitbox(target);
           targetAngle = MathAngle.calculateAngle(bestPoint);
-          
-          // Если мы внутри врага, агрессивно целимся вниз
-          if (mc.player != null && mc.player.getBoundingBox().intersects(target.getBoundingBox())) {
-               // Принудительно целимся в голову врага с большим downward pitch
-               float downwardPitch = Math.max(targetAngle.getPitch(), 25.0f);
-               targetAngle = new Turns(targetAngle.getYaw(), downwardPitch);
-          }
-          
-          // Очень слабенький velocity prediction для компенсации спидов
-          long currentTime = System.currentTimeMillis();
-          if (currentTime - lastVelocityCheckTime > 50) {
-               if (lastEnemyPos != null) {
-                    Vec3d currentPos = target.getPos();
-                    predictedEnemyVelocity = currentPos.subtract(lastEnemyPos);
-                    
-                    // Если враг движется быстро (спидится), добавляем микро-коррекцию
-                    if (predictedEnemyVelocity.length() > 0.15) {
-                         // Очень слабая коррекция - только 3% от скорости врага
-                         Vec3d correction = predictedEnemyVelocity.multiply(0.03);
-                         bestPoint = bestPoint.add(correction);
-                         targetAngle = MathAngle.calculateAngle(bestPoint);
-                    }
-               }
-               lastEnemyPos = target.getPos();
-               lastVelocityCheckTime = currentTime;
-          }
 
           Turns smoothedAngle = applyBezierSmoothing(currentAngle, targetAngle);
 
@@ -92,15 +56,6 @@ public class HAngleV2X extends RotateConstructor {
 
      private Vec3d scanHitbox(LivingEntity target) {
           Box box = target.getBoundingBox();
-          
-          // Проверяем находимся ли мы ВНУТРИ врага (speed exploit)
-          if (mc.player != null) {
-               Box playerBox = mc.player.getBoundingBox();
-               if (box.intersects(playerBox)) {
-                    // Мы внутри врага - целимся в голову вниз
-                    return new Vec3d(target.getX(), target.getY() + target.getHeight() * 0.9, target.getZ());
-               }
-          }
           
           double p = 0.15;
           double minX = box.minX + (box.maxX - box.minX) * p;
@@ -133,9 +88,8 @@ public class HAngleV2X extends RotateConstructor {
      }
 
      private Turns applyBezierSmoothing(Turns current, Turns target) {
-          if (lastTargetRot == null) {
+          if (lastTargetRot == null)
                lastTargetRot = current;
-          }
 
           float diff = (float) Math.hypot(MathHelper.wrapDegrees(target.getYaw() - current.getYaw()),
                     target.getPitch() - current.getPitch());
@@ -153,21 +107,15 @@ public class HAngleV2X extends RotateConstructor {
           float yawDelta = MathHelper.wrapDegrees(target.getYaw() - current.getYaw());
           float wrappedTargetYaw = current.getYaw() + yawDelta;
 
-          // Уменьшил jitterStrength чтобы не дергала камера
-          float jitterStrength = (float) (0.8f + Math.sin(System.currentTimeMillis() / 200.0) * 0.3f);
-          float controlYaw = current.getYaw() + yawDelta * 0.5f + (getNoise(noiseOffset) * jitterStrength * 0.5f);
+          float jitterStrength = (float) (2.0f + Math.sin(System.currentTimeMillis() / 200.0) * PHI);
+          float controlYaw = current.getYaw() + yawDelta * 0.5f + (getNoise(noiseOffset) * jitterStrength);
 
           float yaw = bezier(current.getYaw(), controlYaw, wrappedTargetYaw, t);
           float pitch = bezier(current.getPitch(),
                     current.getPitch() + (target.getPitch() - current.getPitch()) * 0.45f,
                     target.getPitch(), t);
 
-          // Обновляем только если таргет изменился значительно
-          if (Math.abs(MathHelper.wrapDegrees(target.getYaw() - lastTargetRot.getYaw())) > 5 ||
-              Math.abs(target.getPitch() - lastTargetRot.getPitch()) > 5) {
-               lastTargetRot = target;
-          }
-          
+          lastTargetRot = target;
           return new Turns(yaw, pitch);
      }
 
@@ -188,14 +136,9 @@ public class HAngleV2X extends RotateConstructor {
 
           float maxStep = 58.0f;
 
-          // Проверяем дистанцию до таргета для close-range режима
-          if (mc.player != null) {
-               Aura aura = Aura.getInstance();
-               LivingEntity target = aura != null ? aura.getTarget() : null;
-               
-               if (target != null && mc.player.distanceTo(target) < 1.2) {
-                    maxStep = 42.0f;
-               }
+          Aura aura = Aura.getInstance();
+          if (aura != null && aura.getTarget() != null && mc.player != null && mc.player.distanceTo(aura.getTarget()) < 1.2) {
+               maxStep = 42.0f;
           }
 
           if (yawDelta > maxStep) {
