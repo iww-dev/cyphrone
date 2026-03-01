@@ -56,10 +56,8 @@ public abstract class LivingEntityRendererMixin implements QuickImports {
         Aura aura = Aura.getInstance();
 
         if (entity.equals(mc.player) && controller.getPreviousRotation().getYaw() != mc.player.getYaw() && controller.getFakeRotation().getYaw() != mc.player.getYaw() && !(mc.currentScreen instanceof HandledScreen)) {
-            boolean isLony = Aura.fakeRotate;
-
-            float prevYaw = isLony ? controller.getFakeRotation().getYaw() : controller.getPreviousRotation().getYaw();
-            float currentYaw = isLony ? controller.getFakeRotation().getYaw() : controller.getRotation().getYaw();
+            float prevYaw = controller.getPreviousRotation().getYaw();
+            float currentYaw = controller.getRotation().getYaw();
 
             if (Aura.getInstance().getTarget() == null) {
                 prevYaw = controller.getPreviousRotation().getYaw();
@@ -85,10 +83,8 @@ public abstract class LivingEntityRendererMixin implements QuickImports {
         Aura aura = Aura.getInstance();
 
         if (entity.equals(mc.player) && controller.getPreviousRotation().getPitch() != mc.player.getPitch() && controller.getFakeRotation().getPitch() != mc.player.getPitch() && !(mc.currentScreen instanceof HandledScreen)) {
-            boolean isLony = Aura.fakeRotate;
-
-            float prevPitch = isLony ? controller.getFakeRotation().getPitch() : controller.getPreviousRotation().getPitch();
-            float currentPitch = isLony ? controller.getFakeRotation().getPitch() : controller.getRotation().getPitch();
+            float prevPitch = controller.getPreviousRotation().getPitch();
+            float currentPitch = controller.getRotation().getPitch();
 
             if (Aura.getInstance().getTarget() == null ) {
                 prevPitch = controller.getPreviousRotation().getPitch();

@@ -44,6 +44,13 @@ public class HAngleV2X extends RotateConstructor {
 
           Vec3d bestPoint = scanHitbox(target);
           targetAngle = MathAngle.calculateAngle(bestPoint);
+          
+          // Если мы внутри врага, агрессивно целимся вниз
+          if (mc.player != null && mc.player.getBoundingBox().intersects(target.getBoundingBox())) {
+               // Принудительно целимся в голову врага с большим downward pitch
+               float downwardPitch = Math.max(targetAngle.getPitch(), 25.0f);
+               targetAngle = new Turns(targetAngle.getYaw(), downwardPitch);
+          }
 
           Turns smoothedAngle = applyBezierSmoothing(currentAngle, targetAngle);
 
@@ -56,6 +63,15 @@ public class HAngleV2X extends RotateConstructor {
 
      private Vec3d scanHitbox(LivingEntity target) {
           Box box = target.getBoundingBox();
+          
+          // Проверяем находимся ли мы ВНУТРИ врага (speed exploit)
+          if (mc.player != null) {
+               Box playerBox = mc.player.getBoundingBox();
+               if (box.intersects(playerBox)) {
+                    // Мы внутри врага - целимся в голову вниз
+                    return new Vec3d(target.getX(), target.getY() + target.getHeight() * 0.9, target.getZ());
+               }
+          }
           
           double p = 0.15;
           double minX = box.minX + (box.maxX - box.minX) * p;

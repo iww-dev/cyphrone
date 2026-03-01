@@ -78,7 +78,7 @@ public class TargetPearl extends Module {
             }
             
             if (owner != null && !owner.equals(mc.player) && !FriendUtils.isFriend(owner)) {
-                LivingEntity target = Aura.getInstance().getLastTarget();
+                LivingEntity target = Aura.getInstance().getTarget();
                 if (targetSetting.isSelected("All") || (target != null && target.equals(owner))) {
                     lastEnemyPearlPos = pearl.getPos();
                     lastEnemyPearlTime = System.currentTimeMillis();

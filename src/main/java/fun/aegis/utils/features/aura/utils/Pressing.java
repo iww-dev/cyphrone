@@ -29,7 +29,14 @@ public class Pressing implements QuickImports {
                     is18Mode = true;
                     Float cpsValue = aura.getCps().getValue();
                     if (cpsValue > 0) {
-                        requiredDelay = (long) (1000.0f / cpsValue);
+                        // Точный расчёт задержки между кликами в миллисекундах
+                        // CPS = клики в секунду, поэтому задержка = 1000 / CPS
+                        requiredDelay = Math.round(1000.0f / cpsValue);
+                        
+                        // Гарантируем минимальную задержку (не более 15 CPS = 66ms)
+                        if (requiredDelay < 66) {
+                            requiredDelay = 66;
+                        }
                     }
                 }
             }
@@ -38,7 +45,8 @@ public class Pressing implements QuickImports {
         }
         
         // Проверяем минимальную задержку между кликами
-        boolean minimumDelayPassed = lastClickPassed() >= requiredDelay;
+        long timeSinceLastClick = lastClickPassed();
+        boolean minimumDelayPassed = timeSinceLastClick >= requiredDelay;
         
         if (is18Mode) {
             // В режиме 1.8 используем ТОЛЬКО CPS, без проверки cooldown
@@ -77,3 +85,4 @@ public class Pressing implements QuickImports {
         return mainHand.getItem().getTranslationKey().toLowerCase().contains("mace");
     }
 }
+

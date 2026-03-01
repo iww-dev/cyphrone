@@ -77,7 +77,6 @@ public class TargetESP extends Module {
 
         if (Aura.getInstance().isState()) {
             currentTarget = Aura.getInstance().getTarget();
-            lastTarget = Aura.getInstance().getLastTarget();
         } else if (TriggerBot.getInstance().isState()) {
             currentTarget = TriggerBot.getInstance().target;
             lastTarget = TriggerBot.getInstance().target;

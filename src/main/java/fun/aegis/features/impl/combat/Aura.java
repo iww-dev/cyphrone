@@ -82,12 +82,10 @@ public class Aura extends Module {
     MultiPoint pointFinder = new MultiPoint();
 
     @NonFinal
-    LivingEntity target, lastTarget;
+    LivingEntity target;
 
     @NonFinal
     long shiftTapEndTime = 0;
-
-    public static boolean fakeRotate;
 
     @NonFinal
     @Getter
@@ -143,7 +141,11 @@ public class Aura extends Module {
             .setValue(true).visible(() -> attackSetting.isSelected("Only Critical") && !mode18.isValue());
 
     SliderSettings cps = new SliderSettings("CPS", "Клики в секунду")
-            .setValue(10).range(1F, 15F).visible(() -> mode18.isValue());
+            .setValue(10).range(1F, 35F).visible(() -> mode18.isValue());
+
+    SelectSetting clickMode = new SelectSetting("Режим клика", "Выберите режим клика для 1.8")
+            .value("Normal", "Drag Clicking", "Butterfly", "Jitter Clicking")
+            .selected("Normal").visible(() -> mode18.isValue());
 
     BooleanSetting autoMace = new BooleanSetting("AutoMace", "Автоматически бьет булавой на определенной высоте")
             .setValue(false);
@@ -189,6 +191,7 @@ public class Aura extends Module {
                 smartCrits,
                 mode18,
                 cps,
+                clickMode,
                 autoMace,
                 maceHeight,
                 reachEnabled,
@@ -205,7 +208,6 @@ public class Aura extends Module {
     public void deactivate() {
         targetSelector.releaseTarget();
         target = null;
-        lastTarget = null;
         packets.forEach(PlayerInteractionHelper::sendPacketWithOutEvent);
         packets.clear();
 
@@ -406,7 +408,6 @@ public class Aura extends Module {
                     if (!aimMode.isSelected("None")) {
                         rotateToTarget(getConfig());
                     }
-                    lastTarget = target;
                 } else {
                     // Если нет цели - смотрим туда куда смотрит игрок
                     if (mc.player != null) {
@@ -482,14 +483,6 @@ public class Aura extends Module {
         TurnsConfig rotationConfig = getRotationConfig();
 
         boolean elytraMode = mc.player.isGliding() && attackSetting.isSelected("Elytra possibilities");
-
-        if (fakeRotate && target != null) {
-            FakeAngle fake = new FakeAngle();
-            Turns fakeRot = fake.limitAngleChange(controller.getRotation(), rotation.getAngle(), rotation.getVec(),
-                    target);
-            controller.setFakeRotation(fakeRot);
-        }
-        fakeRotate = false;
         switch (aimMode.getSelected()) {
 
             case "HolyWorld" -> {
@@ -526,7 +519,6 @@ public class Aura extends Module {
 
     @NonFinal
     public boolean elytraStateForward = false;
-    private boolean wasForwardPressed = false;
 
     public StrikerConstructor.AttackPerpetratorConfigurable getConfig() {
         if (target == null || mc.player == null)
@@ -782,5 +774,9 @@ public class Aura extends Module {
 
     public SliderSettings getCps() {
         return cps;
+    }
+
+    public SelectSetting getClickMode() {
+        return clickMode;
     }
 }
