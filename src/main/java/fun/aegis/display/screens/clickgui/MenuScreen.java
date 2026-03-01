@@ -88,16 +88,22 @@ public class MenuScreen extends Screen implements QuickImports {
         int currentWidth = window.getScaledWidth();
         int currentHeight = window.getScaledHeight();
 
+        // Проверяем изменение размера окна
         if (lastScreenWidth != currentWidth || lastScreenHeight != currentHeight) {
-            if (lastScreenWidth != 0 && lastScreenHeight != 0) {
+            // Если это первый раз, центрируем
+            if (lastScreenWidth == 0 && lastScreenHeight == 0) {
+                x = currentWidth / 2 - width / 2;
+                y = currentHeight / 2 - height / 2;
+            } else {
+                // При изменении размера пересчитываем позицию на основе процентов
                 x = (int) (currentWidth * offsetXPercent - width / 2);
                 y = (int) (currentHeight * offsetYPercent - height / 2);
-            } else {
-                x = currentWidth / 2 - 200;
-                y = currentHeight / 2 - 125;
-                offsetXPercent = (x + width / 2f) / currentWidth;
-                offsetYPercent = (y + height / 2f) / currentHeight;
             }
+            
+            // Убеждаемся что GUI не выходит за границы экрана
+            x = Math.max(0, Math.min(x, currentWidth - width));
+            y = Math.max(0, Math.min(y, currentHeight - height));
+            
             lastScreenWidth = currentWidth;
             lastScreenHeight = currentHeight;
         }
@@ -107,7 +113,7 @@ public class MenuScreen extends Screen implements QuickImports {
         lastTransformedMouseX = transformed[0];
         lastTransformedMouseY = transformed[1];
 
-        rectangle.render(ShapeProperties.create(context.getMatrices(), 0, 0, window.getScaledWidth(), window.getScaledHeight()).color(Calculate.applyOpacity(0xFF000000, 100 * getScaleAnimation())).build());
+        rectangle.render(ShapeProperties.create(context.getMatrices(), 0, 0, window.getScaledWidth(), window.getScaledHeight()).color(Calculate.applyOpacity(0xFF000000, (int)(120 * getScaleAnimation()))).build());
         backgroundComponent.position(x - 20, y).size(width + 40, height);
         categoryContainerComponent.position(x - 20, y);
 

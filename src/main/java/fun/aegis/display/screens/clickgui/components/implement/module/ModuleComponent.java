@@ -89,11 +89,11 @@ public class ModuleComponent extends AbstractComponent {
         blur.render(ShapeProperties.create(context.getMatrices(), x, y, width, height = getComponentHeight())
                 .round(5)
                 .quality(128)
-                .color(new Color(0, 0, 0, 150).getRGB())
+                .color(new Color(20, 20, 30, 180).getRGB())
                 .build());
 
         rectangle.render(ShapeProperties.create(context.getMatrices(), x, y + cachedDescHeight + 25, width, 1)
-                .color(new Color(25, 25, 40, 155).getRGB(), new Color(55, 55, 60, 155).getRGB(), new Color(55, 55, 60, 155).getRGB(), new Color(25, 25, 40, 155).getRGB())
+                .color(new Color(40, 40, 60, 200).getRGB(), new Color(70, 70, 80, 200).getRGB(), new Color(70, 70, 80, 200).getRGB(), new Color(40, 40, 60, 200).getRGB())
                 .build());
 
         if (!module.settings().isEmpty()) {
@@ -108,7 +108,7 @@ public class ModuleComponent extends AbstractComponent {
                 .setState(module.isState())
                 .render(context, mouseX, mouseY, delta);
 
-        Fonts.getSize(15, DEFAULT).drawString(context.getMatrices(), point + module.getVisibleName(), x + 11, y + nameY, new Color(255, 255, 255, alphaOffset).getRGB());
+        Fonts.getSize(15, DEFAULT).drawString(context.getMatrices(), point + module.getVisibleName(), x + 11, y + nameY, new Color(255, 255, 255, alphaOffset + 50).getRGB());
 
         // Рендерим описание с улучшенным контрастом
         float currentX = x + 10;
@@ -121,9 +121,9 @@ public class ModuleComponent extends AbstractComponent {
             if (currentX + wordWidth > x + maxWidth) {
                 if (currentLine == 1) {
                     Fonts.getSize(14, GUIICONS).drawString(context.getMatrices(), "C", x + 6.5f, currentY + 0.5f, new Color(150, 150, 150, 255).getRGB());
-                    Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 15, currentY, new Color(160, 160, 160, 220).getRGB());
+                    Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 15, currentY, new Color(180, 180, 180, 240).getRGB());
                 } else {
-                    Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 5, currentY, new Color(160, 160, 160, 220).getRGB());
+                    Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 5, currentY, new Color(180, 180, 180, 240).getRGB());
                 }
                 line = new StringBuilder();
                 currentY += Fonts.getSize(12, DEFAULT).getStringHeight(word) - 7;
@@ -137,9 +137,9 @@ public class ModuleComponent extends AbstractComponent {
         if (!line.isEmpty()) {
             if (currentLine == 1) {
                 Fonts.getSize(14, GUIICONS).drawString(context.getMatrices(), "C", x + 6.5f, currentY + 0.5f, new Color(150, 150, 150, 255).getRGB());
-                Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 15, currentY, new Color(160, 160, 160, 220).getRGB());
+                Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 15, currentY, new Color(180, 180, 180, 240).getRGB());
             } else {
-                Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 7, currentY, new Color(160, 160, 160, 220).getRGB());
+                Fonts.getSize(12, DEFAULT).drawString(context.getMatrices(), line.toString(), x + 7, currentY, new Color(180, 180, 180, 240).getRGB());
             }
         }
 
@@ -256,15 +256,15 @@ public class ModuleComponent extends AbstractComponent {
 
         rectangle.render(ShapeProperties.create(context.getMatrices(), bindX + 0.25f, back, stringWidth + 6, 10)
                 .round(3f)
-                .outlineColor(new Color(155, 155, 165, 255).getRGB())
+                .outlineColor(new Color(170, 170, 180, 255).getRGB())
                 .color(
-                        new Color(61, 67, 71, 80).getRGB(),
-                        new Color(71, 77, 81, 80).getRGB(),
-                        new Color(81, 87, 91, 80).getRGB(),
-                        new Color(91, 97, 101, 80).getRGB())
+                        new Color(80, 90, 100, 120).getRGB(),
+                        new Color(90, 100, 110, 120).getRGB(),
+                        new Color(100, 110, 120, 120).getRGB(),
+                        new Color(110, 120, 130, 120).getRGB())
                 .build());
 
-        int bindingColor = ColorHelper.getArgb(255, 135, 136, 148);
+        int bindingColor = ColorHelper.getArgb(255, 160, 160, 170);
         float textX = module.settings().isEmpty() ? x + width - 34.5f - stringWidth : x + width - 34.5f - stringWidth;
         float textY = module.settings().isEmpty() ? y + descHeight + 6F + 28f : y + descHeight + 6F + 28f;
 

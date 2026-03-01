@@ -65,14 +65,14 @@ public class StrikeManager implements QuickImports {
         
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastVariationUpdate > 150) {
-            attackVariation = 0.8f + (ThreadLocalRandom.current().nextFloat() * 0.4f);
+            attackVariation = 0.9f + (ThreadLocalRandom.current().nextFloat() * 0.2f);
             lastVariationUpdate = currentTime;
         }
         
-        // Обновляем delay для обхода
-        if (currentTime - lastDelayUpdate > 200) {
-            shouldDelayAttack = ThreadLocalRandom.current().nextBoolean();
-            attackDelayTicks = ThreadLocalRandom.current().nextInt(1, 4);
+        // Задержка для атаки - 40% шанс, 1-2 тика
+        if (currentTime - lastDelayUpdate > 100) { // Проверка быстрее (100ms вместо 200ms)
+            shouldDelayAttack = ThreadLocalRandom.current().nextFloat() < 0.4f; // 40% шанс
+            attackDelayTicks = ThreadLocalRandom.current().nextInt(1, 3); // 1-2 тика задержки
             lastDelayUpdate = currentTime;
         }
         
@@ -114,6 +114,8 @@ public class StrikeManager implements QuickImports {
     private boolean pendingStartSprint = false;
     private boolean pendingStopSprint = false;
     private boolean didStopSprint = false;
+    private boolean lastSprintState = false;
+    private long lastSprintToggleTime = 0;
 
     void handleAttack(StrikerConstructor.AttackPerpetratorConfigurable config) {
         if (config == null || config.getTarget() == null || mc.player == null)
@@ -121,7 +123,7 @@ public class StrikeManager implements QuickImports {
 
         long currentTime = System.currentTimeMillis();
         
-        // Добавляем случайную задержку для обхода
+        // Минимальная задержка для обхода - только иногда и только на 1 тик
         if (shouldDelayAttack && attackDelayTicks > 0) {
             attackDelayTicks--;
             return;
@@ -151,14 +153,8 @@ public class StrikeManager implements QuickImports {
                 leadTicks = ElytraTarget.getInstance().elytraForward.getValue();
             }
 
-            // Улучшенный расчёт предиктивной позиции
+            // Улучшенный расчёт предиктивной позиции БЕЗ лишних смещений
             Vec3d predictedPos = target.getPos().add(targetVelocity.multiply(leadTicks));
-            
-            // Добавляем небольшое смещение для обхода
-            float offsetX = (float) (Math.sin(currentTime / 500D) * 0.2f);
-            float offsetY = (float) (Math.cos(currentTime / 600D) * 0.15f);
-            float offsetZ = (float) (Math.sin(currentTime / 700D) * 0.2f);
-            predictedPos = predictedPos.add(offsetX, offsetY, offsetZ);
             
             Box predictedBox = new Box(
                     predictedPos.x - target.getWidth() / 2,
@@ -425,7 +421,17 @@ public class StrikeManager implements QuickImports {
     }
 
     private boolean isPlayerInCriticalState(PlayerSimulation simulated, int ticks) {
-        boolean fall = simulated.fallDistance > 0;
-        return !simulated.onGround && (fall);
+        // Крит в майне работает так: прыгнул, и когда почти у земли ударить
+        // fallDistance > 0 означает что мы в воздухе
+        // Но крит срабатывает только если мы НЕ на земле И падаем (fallDistance растёт)
+        
+        boolean isFalling = simulated.fallDistance > 0;
+        boolean notOnGround = !simulated.onGround;
+        
+        // Крит срабатывает когда:
+        // 1. Мы в воздухе (не на земле)
+        // 2. И падаем (fallDistance > 0)
+        // 3. И не слишком высоко (fallDistance < 0.5 означает что мы почти у земли)
+        return notOnGround && isFalling && simulated.fallDistance < 0.5f;
     }
 }

@@ -88,9 +88,9 @@ public class MainMenu extends Screen implements QuickImports {
             drawButton(context, sx, sy, 102, 18.5f, "Одиночная игра", mainAlphaInt);
             drawButton(context, sx, sy + bs, 102, 18.5f, "Сетевая игра", mainAlphaInt);
             drawButton(context, sx, sy + bs * 2, 102, 18.5f, "Аккаунты", mainAlphaInt);
-            drawButton(context, sx, sy + bs * 3, 102, 18.5f, "", mainAlphaInt);
-            drawButton(context, sx, sy + bs * 4, 50, 18.5f, "", mainAlphaInt);
-            drawButton(context, sx + 52, sy + bs * 4, 50, 18.5f, "", mainAlphaInt);
+            drawButton(context, sx, sy + bs * 3, 102, 18.5f, "Настройки", mainAlphaInt);
+            drawButton(context, sx, sy + bs * 4, 50, 18.5f, "Выход", mainAlphaInt);
+            drawButton(context, sx + 52, sy + bs * 4, 50, 18.5f, "Справка", mainAlphaInt);
 
             Fonts.getSize(21, Fonts.Type.ICONSTYPENEW).drawCenteredString(context.getMatrices(), "i", width / 2 - 24,
                     sy + bs + 49, applyAlpha(ColorAssist.getText(0.35f), mainAlphaInt));
@@ -112,25 +112,25 @@ public class MainMenu extends Screen implements QuickImports {
 
             rectangle
                     .render(ShapeProperties.create(context.getMatrices(), 8, height - 27, 20, 20).thickness(2).round(10)
-                            .outlineColor(applyAlpha(new Color(100, 100, 100, 95).getRGB(), mainAlphaInt))
-                            .color(applyAlpha(new Color(50, 50, 50, 55).getRGB(), mainAlphaInt),
-                                    applyAlpha(new Color(50, 50, 50, 55).getRGB(), mainAlphaInt),
-                                    applyAlpha(new Color(80, 80, 80, 95).getRGB(), mainAlphaInt),
-                                    applyAlpha(new Color(80, 80, 80, 95).getRGB(), mainAlphaInt))
+                            .outlineColor(applyAlpha(new Color(120, 120, 120, 150).getRGB(), mainAlphaInt))
+                            .color(applyAlpha(new Color(70, 70, 70, 100).getRGB(), mainAlphaInt),
+                                    applyAlpha(new Color(70, 70, 70, 100).getRGB(), mainAlphaInt),
+                                    applyAlpha(new Color(110, 110, 110, 150).getRGB(), mainAlphaInt),
+                                    applyAlpha(new Color(110, 110, 110, 150).getRGB(), mainAlphaInt))
                             .build());
 
             Render2D.drawTexture(context, Identifier.of("minecraft", "textures/mainmenu/steve.png"), 9.5f,
                     height - 25.5f, 17, 7, 32, 32, 32, applyAlpha(new Color(0, 0, 0, 255).getRGB(), mainAlphaInt));
 
             rectangle.render(ShapeProperties.create(context.getMatrices(), 22, height - 13, 6, 6).thickness(2).round(3)
-                    .outlineColor(applyAlpha(new Color(100, 100, 100, 95).getRGB(), mainAlphaInt))
-                    .color(applyAlpha(new Color(50, 50, 50, 55).getRGB(), mainAlphaInt),
-                            applyAlpha(new Color(50, 50, 50, 55).getRGB(), mainAlphaInt),
-                            applyAlpha(new Color(80, 80, 80, 95).getRGB(), mainAlphaInt),
-                            applyAlpha(new Color(80, 80, 80, 95).getRGB(), mainAlphaInt))
+                    .outlineColor(applyAlpha(new Color(120, 120, 120, 150).getRGB(), mainAlphaInt))
+                    .color(applyAlpha(new Color(70, 70, 70, 100).getRGB(), mainAlphaInt),
+                            applyAlpha(new Color(70, 70, 70, 100).getRGB(), mainAlphaInt),
+                            applyAlpha(new Color(110, 110, 110, 150).getRGB(), mainAlphaInt),
+                            applyAlpha(new Color(110, 110, 110, 150).getRGB(), mainAlphaInt))
                     .build());
             rectangle.render(ShapeProperties.create(context.getMatrices(), 23, height - 12, 4, 4).round(2)
-                    .color(applyAlpha(new Color(1, 235, 1, 155).getRGB(), mainAlphaInt)).build());
+                    .color(applyAlpha(new Color(50, 255, 50, 200).getRGB(), mainAlphaInt)).build());
 
             Fonts.getSize(12, Fonts.Type.DEFAULT).drawString(context.getMatrices(),
                     "Username ▸ " + userProfile.profile("username"), 35, height - 21.5f,
@@ -170,24 +170,24 @@ public class MainMenu extends Screen implements QuickImports {
 
     private void drawButton(DrawContext ctx, float x, float y, float w, float h, String label, int alpha) {
         rectangle.render(ShapeProperties.create(ctx.getMatrices(), x, y, w, h).thickness(2).round(4)
-                .outlineColor(applyAlpha(new Color(100, 100, 100, 95).getRGB(), alpha))
-                .color(applyAlpha(new Color(50, 50, 50, 55).getRGB(), alpha),
-                        applyAlpha(new Color(50, 50, 50, 55).getRGB(), alpha),
-                        applyAlpha(new Color(80, 80, 80, 95).getRGB(), alpha),
-                        applyAlpha(new Color(80, 80, 80, 95).getRGB(), alpha))
+                .outlineColor(applyAlpha(new Color(120, 120, 120, 180).getRGB(), alpha))
+                .color(applyAlpha(new Color(60, 60, 60, 100).getRGB(), alpha),
+                        applyAlpha(new Color(60, 60, 60, 100).getRGB(), alpha),
+                        applyAlpha(new Color(100, 100, 100, 140).getRGB(), alpha),
+                        applyAlpha(new Color(100, 100, 100, 140).getRGB(), alpha))
                 .build());
 
         rectangle.render(ShapeProperties.create(ctx.getMatrices(), x, y, w, 1).thickness(2).round(5)
-                .outlineColor(applyAlpha(new Color(100, 100, 100, 95).getRGB(), alpha))
-                .color(applyAlpha(new Color(50, 50, 50, 5).getRGB(), alpha),
-                        applyAlpha(new Color(50, 50, 50, 255).getRGB(), alpha),
+                .outlineColor(applyAlpha(new Color(120, 120, 120, 180).getRGB(), alpha))
+                .color(applyAlpha(new Color(80, 80, 80, 80).getRGB(), alpha),
                         applyAlpha(new Color(80, 80, 80, 255).getRGB(), alpha),
-                        applyAlpha(new Color(80, 80, 80, 5).getRGB(), alpha))
+                        applyAlpha(new Color(120, 120, 120, 255).getRGB(), alpha),
+                        applyAlpha(new Color(120, 120, 120, 80).getRGB(), alpha))
                 .build());
 
         if (!label.isEmpty()) {
             Fonts.getSize(16, Fonts.Type.DEFAULT).drawCenteredString(ctx.getMatrices(), label, width / 2, y + 7,
-                    applyAlpha(new Color(200, 200, 200).getRGB(), alpha));
+                    applyAlpha(new Color(230, 230, 230).getRGB(), alpha));
         }
     }
 

@@ -147,8 +147,9 @@ public class HAngleV2X extends RotateConstructor {
           float yawDelta = MathHelper.wrapDegrees(target.getYaw() - current.getYaw());
           float wrappedTargetYaw = current.getYaw() + yawDelta;
 
-          float jitterStrength = (float) (2.0f + Math.sin(System.currentTimeMillis() / 200.0) * PHI);
-          float controlYaw = current.getYaw() + yawDelta * 0.5f + (getNoise(noiseOffset) * jitterStrength);
+          // Уменьшил jitterStrength чтобы не дергала камера
+          float jitterStrength = (float) (0.8f + Math.sin(System.currentTimeMillis() / 200.0) * 0.3f);
+          float controlYaw = current.getYaw() + yawDelta * 0.5f + (getNoise(noiseOffset) * jitterStrength * 0.5f);
 
           float yaw = bezier(current.getYaw(), controlYaw, wrappedTargetYaw, t);
           float pitch = bezier(current.getPitch(),
