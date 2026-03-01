@@ -87,7 +87,10 @@ public class Simulations implements QuickImports {
             float handSwingProgress
     ) {
 
-        yaw = TurnsConnection.INSTANCE.getFakeRotation().getYaw();
+        // Используем текущий yaw игрока, а не getFakeRotation()
+        if (mc.player != null) {
+            yaw = mc.player.getYaw();
+        }
 
         double motionX = currentX - prevX;
         double motionZ = currentZ - prevZ;
@@ -113,8 +116,8 @@ public class Simulations implements QuickImports {
         }
 
         float deltaYaw = MathHelper.wrapDegrees(bodyYaw - prevBodyYaw);
-        // Ограничиваем максимальный поворот тела за один тик до 15 градусов
-        deltaYaw = MathHelper.clamp(deltaYaw, -15.0F, 15.0F);
+        // Ограничиваем максимальный поворот тела за один тик до 50 градусов (достаточно для быстрого поворота)
+        deltaYaw = MathHelper.clamp(deltaYaw, -50.0F, 50.0F);
         bodyYaw = prevBodyYaw + deltaYaw;
 
         float yawOffsetDiff = MathHelper.wrapDegrees(yaw - bodyYaw);

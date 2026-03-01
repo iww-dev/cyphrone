@@ -55,14 +55,10 @@ public abstract class LivingEntityRendererMixin implements QuickImports {
         TurnsConnection controller = TurnsConnection.INSTANCE;
         Aura aura = Aura.getInstance();
 
-        if (entity.equals(mc.player) && controller.getPreviousRotation().getYaw() != mc.player.getYaw() && controller.getFakeRotation().getYaw() != mc.player.getYaw() && !(mc.currentScreen instanceof HandledScreen)) {
+        // Применяем custom ротацию только если это игрок И есть активная ротация
+        if (entity.equals(mc.player) && controller.getRotation() != null && !(mc.currentScreen instanceof HandledScreen)) {
             float prevYaw = controller.getPreviousRotation().getYaw();
             float currentYaw = controller.getRotation().getYaw();
-
-            if (Aura.getInstance().getTarget() == null) {
-                prevYaw = controller.getPreviousRotation().getYaw();
-                currentYaw = controller.getRotation().getYaw();
-            }
 
             return MathHelper.lerp(delta, prevYaw, currentYaw);
         }
@@ -82,15 +78,10 @@ public abstract class LivingEntityRendererMixin implements QuickImports {
         TurnsConnection controller = TurnsConnection.INSTANCE;
         Aura aura = Aura.getInstance();
 
-        if (entity.equals(mc.player) && controller.getPreviousRotation().getPitch() != mc.player.getPitch() && controller.getFakeRotation().getPitch() != mc.player.getPitch() && !(mc.currentScreen instanceof HandledScreen)) {
+        // Применяем custom ротацию только если это игрок И есть активная ротация
+        if (entity.equals(mc.player) && controller.getRotation() != null && !(mc.currentScreen instanceof HandledScreen)) {
             float prevPitch = controller.getPreviousRotation().getPitch();
             float currentPitch = controller.getRotation().getPitch();
-
-            if (Aura.getInstance().getTarget() == null ) {
-                prevPitch = controller.getPreviousRotation().getPitch();
-                currentPitch = controller.getRotation().getPitch();
-            }
-
 
             return MathHelper.lerp(delta, prevPitch, currentPitch);
         }

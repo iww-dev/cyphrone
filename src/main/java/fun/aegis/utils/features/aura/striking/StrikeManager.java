@@ -35,72 +35,24 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.Text;
 import fun.aegis.display.hud.Notifications;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class StrikeManager implements QuickImports {
     private final StopWatch attackTimer = new StopWatch(), shieldWatch = new StopWatch(),
-            sprintCooldown = new StopWatch();
+            sprintCooldown = new StopWatch();;
     private final Pressing clickScheduler = new Pressing();
     private int count = 0;
     private boolean prevSprinting;
-    
-    // Дополнительные системы для обхода
-    private long lastAttackTime = 0;
-    private float attackVariation = 1.0f;
-    private long lastVariationUpdate = 0;
-    private int attackDelayTicks = 0;
-    private boolean shouldDelayAttack = false;
-    private long lastDelayUpdate = 0;
-    private float critChanceVariation = 1.0f;
-    private long lastCritVariationUpdate = 0;
-    private Vec3d lastAttackPos = Vec3d.ZERO;
-    private float rotationSmoothing = 0f;
 
     void tick() {
-        // Таймеры обновляются автоматически через StopWatch
-        // Не нужно вызывать update() - StopWatch сам отслеживает время
-        
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastVariationUpdate > 150) {
-            attackVariation = 0.9f + (ThreadLocalRandom.current().nextFloat() * 0.2f);
-            lastVariationUpdate = currentTime;
-        }
-        
-        // Задержка для атаки - 40% шанс, 1-2 тика
-        if (currentTime - lastDelayUpdate > 100) { // Проверка быстрее (100ms вместо 200ms)
-            shouldDelayAttack = ThreadLocalRandom.current().nextFloat() < 0.4f; // 40% шанс
-            attackDelayTicks = ThreadLocalRandom.current().nextInt(1, 3); // 1-2 тика задержки
-            lastDelayUpdate = currentTime;
-        }
-        
-        // Обновляем crit вариативность
-        if (currentTime - lastCritVariationUpdate > 180) {
-            critChanceVariation = 0.85f + (ThreadLocalRandom.current().nextFloat() * 0.3f);
-            lastCritVariationUpdate = currentTime;
-        }
     }
 
     void onPacket(PacketEvent e) {
         Packet<?> packet = e.getPacket();
         if (packet instanceof HandSwingC2SPacket || packet instanceof UpdateSelectedSlotC2SPacket) {
             clickScheduler.recalculate();
-        }
-        
-        // Отслеживаем спринт через пакеты
-        if (packet instanceof ClientCommandC2SPacket cmd) {
-            if (cmd.getMode() == ClientCommandC2SPacket.Mode.START_SPRINTING) {
-                prevSprinting = true;
-            } else if (cmd.getMode() == ClientCommandC2SPacket.Mode.STOP_SPRINTING) {
-                prevSprinting = false;
-            }
-        }
-        
-        // Отслеживаем позицию атак для анализа паттернов
-        if (packet instanceof PlayerMoveC2SPacket move && mc.player != null) {
-            lastAttackPos = mc.player.getPos();
         }
     }
 
@@ -114,20 +66,11 @@ public class StrikeManager implements QuickImports {
     private boolean pendingStartSprint = false;
     private boolean pendingStopSprint = false;
     private boolean didStopSprint = false;
-    private boolean lastSprintState = false;
-    private long lastSprintToggleTime = 0;
+    private static final long SPRINT_COOLDOWN_MS = 200;
 
     void handleAttack(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        if (config == null || config.getTarget() == null || mc.player == null)
+        if (config == null || config.getTarget() == null)
             return;
-
-        long currentTime = System.currentTimeMillis();
-        
-        // Минимальная задержка для обхода - только иногда и только на 1 тик
-        if (shouldDelayAttack && attackDelayTicks > 0) {
-            attackDelayTicks--;
-            return;
-        }
 
         if (canAttack(config, 0))
             preAttackEntity(config);
@@ -153,9 +96,7 @@ public class StrikeManager implements QuickImports {
                 leadTicks = ElytraTarget.getInstance().elytraForward.getValue();
             }
 
-            // Улучшенный расчёт предиктивной позиции БЕЗ лишних смещений
             Vec3d predictedPos = target.getPos().add(targetVelocity.multiply(leadTicks));
-            
             Box predictedBox = new Box(
                     predictedPos.x - target.getWidth() / 2,
                     predictedPos.y,
@@ -164,31 +105,29 @@ public class StrikeManager implements QuickImports {
                     predictedPos.y + target.getHeight(),
                     predictedPos.z + target.getWidth() / 2);
 
-            if (mc.player == null || mc.interactionManager == null)
+            if (mc.player == null)
                 return;
 
             Vec3d eyePos = mc.player.getEyePos();
-            Turns rotation = TurnsConnection.INSTANCE.getRotation();
-            if (rotation == null) {
-                return;
-            }
-            Vec3d lookVec = rotation.toVector();
+            Vec3d lookVec = TurnsConnection.INSTANCE.getRotation().toVector();
             if (!predictedBox.raycast(eyePos, eyePos.add(lookVec.multiply(config.getMaximumRange()))).isPresent()) {
                 return;
             }
+
+            if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
+                return;
+        } else {
+            if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
+                return;
         }
 
-        // Проверяем raycast и canAttack один раз
-        if (!RaycastAngle.rayTrace(config) || !canAttack(config, 0))
-            return;
-
         String sprintMode = getSprintMode();
-        if (sprintMode != null && sprintMode.equals("Legit")) {
-            if (!isSprinting()) {
-                attackEntity(config);
-            }
-        } else if (sprintMode != null && sprintMode.equals("Packet")) {
-            if (mc.player != null && mc.interactionManager != null) {
+        if (sprintMode != null && sprintMode.equals("Legit") && !isSprinting()) {
+            attackEntity(config);
+        }
+
+        if (sprintMode != null && sprintMode.equals("Packet")) {
+            if (mc.player != null) {
                 mc.player.setSprinting(false);
                 mc.player.sendSprintingPacket();
             }
@@ -212,12 +151,11 @@ public class StrikeManager implements QuickImports {
             shieldWatch.reset();
         }
         String sprintMode = getSprintMode();
-        if (sprintMode != null && sprintMode.equals("Legit")) {
-            // HolyWorld должен работать со спринтом - не отключаем его
+        if (sprintMode.equals("Legit")) {
+            // HolyWorld должен работать со спринтом
             if (Aura.getInstance() != null && Aura.getInstance().getAimMode().isSelected("HolyWorld")) {
                 return;
             }
-            // Для остальных режимов отключаем спринт перед атакой
             if (mc.player.isSprinting() && getTargetDistance() <= getAttackRange()) {
                 AutoSprint.tickStop = 2;
                 mc.options.sprintKey.setPressed(false);
@@ -229,18 +167,22 @@ public class StrikeManager implements QuickImports {
     }
 
     void postAttackEntity(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        if (config == null || mc.player == null)
-            return;
-        
-        // Сбрасываем таймеры после атаки
-        shieldWatch.reset();
-        lastAttackTime = System.currentTimeMillis();
+        // Включаем спринт обратно после атаки если нужно
+        String sprintMode = getSprintMode();
+        if (sprintMode != null && sprintMode.equals("Legit")) {
+            // HolyWorld должен работать со спринтом - включаем его обратно
+            if (Aura.getInstance() != null && Aura.getInstance().getAimMode().isSelected("HolyWorld")) {
+                if (mc.player != null && !mc.player.isSprinting() && mc.player.input.hasForwardMovement()) {
+                    mc.options.sprintKey.setPressed(true);
+                    mc.player.setSprinting(true);
+                }
+            }
+        }
     }
 
     void attackEntity(StrikerConstructor.AttackPerpetratorConfigurable config) {
-        Aura aura = Aura.getInstance();
-        if (aura != null && aura.isState() && aura.getAttackSetting().isSelected("Fake Lag")) {
-            aura.tickStop = 1;
+        if (Aura.getInstance().isState() && Aura.getInstance().getAttackSetting().isSelected("Fake Lag")) {
+            Aura.getInstance().tickStop = 1;
         }
         attack(config);
         breakShield(config);
@@ -277,21 +219,9 @@ public class StrikeManager implements QuickImports {
 
             // Быстрое переключение через пакеты
             mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(axeSlot));
-            
-            // Добавляем микро-задержку для реалистичности
-            try {
-                Thread.sleep(ThreadLocalRandom.current().nextLong(1, 3));
-            } catch (InterruptedException e) {
-                // Игнорируем
-            }
-            
             mc.interactionManager.attackEntity(mc.player, target);
             mc.player.swingHand(Hand.MAIN_HAND);
-            
-            // Возвращаемся на оригинальный слот
-            if (originalSlot != axeSlot) {
-                mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(originalSlot));
-            }
+            mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(originalSlot));
 
             if (Aura.getInstance() != null && Aura.getInstance().isState()) {
                 Notifications.getInstance().addList(Text.literal("Shield broken for ").append(target.getDisplayName()),
@@ -304,34 +234,25 @@ public class StrikeManager implements QuickImports {
         if (config == null || config.getTarget() == null || mc.player == null || mc.interactionManager == null)
             return;
 
-        Aura aura = Aura.getInstance();
-        if (aura != null && aura.isState()) {
-            aura.reach();
+        if (Aura.getInstance() != null && Aura.getInstance().isState()) {
+            Aura.getInstance().reach();
         }
 
         float chance = Calculate.getRandom(0, 100);
-        
-        // Применяем вариативность к шансу попадания
-        float adjustedChance = chance * critChanceVariation;
-        
-        boolean shouldAttack = false;
-        
-        if (aura != null && aura.isState()
-                && aura.getAttackSetting().isSelected("Hit Chance")) {
-            shouldAttack = adjustedChance < aura.getHitChance().getValue();
+        if (Aura.getInstance() != null && Aura.getInstance().isState()
+                && Aura.getInstance().getAttackSetting().isSelected("Hit Chance")) {
+            if (chance < Aura.getInstance().getHitChance().getValue()) {
+                mc.interactionManager.attackEntity(mc.player, config.getTarget());
+            }
         } else if (TriggerBot.getInstance() != null && TriggerBot.getInstance().isState()
                 && TriggerBot.getInstance().attackSetting.isSelected("Hit Chance")) {
-            shouldAttack = adjustedChance < TriggerBot.getInstance().hitChance.getValue();
+            if (chance < TriggerBot.getInstance().hitChance.getValue()) {
+                mc.interactionManager.attackEntity(mc.player, config.getTarget());
+            }
         } else {
-            // Если Hit Chance не выбран, всегда атакуем
-            shouldAttack = true;
-        }
-        
-        if (shouldAttack) {
             mc.interactionManager.attackEntity(mc.player, config.getTarget());
-            clickScheduler.recalculate();
-            mc.player.swingHand(Hand.MAIN_HAND);
         }
+        mc.player.swingHand(Hand.MAIN_HAND);
     }
 
     private boolean isSprinting() {
@@ -418,17 +339,7 @@ public class StrikeManager implements QuickImports {
     }
 
     private boolean isPlayerInCriticalState(PlayerSimulation simulated, int ticks) {
-        // Крит в майне работает так: прыгнул, и когда почти у земли ударить
-        // fallDistance > 0 означает что мы в воздухе
-        // Но крит срабатывает только если мы НЕ на земле И падаем (fallDistance растёт)
-        
-        boolean isFalling = simulated.fallDistance > 0;
-        boolean notOnGround = !simulated.onGround;
-        
-        // Крит срабатывает когда:
-        // 1. Мы в воздухе (не на земле)
-        // 2. И падаем (fallDistance > 0)
-        // 3. И не слишком высоко (fallDistance < 0.5 означает что мы почти у земли)
-        return notOnGround && isFalling && simulated.fallDistance < 0.5f;
+        boolean fall = simulated.fallDistance > 0;
+        return !simulated.onGround && (fall);
     }
 }
