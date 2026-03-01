@@ -40,7 +40,6 @@ public class TurnsConnection implements QuickImports {
     public void setRotation(Turns value) {
         if (value == null) {
             this.previousAngle = this.currentAngle != null ? this.currentAngle : MathAngle.cameraAngle();
-            this.fakeAngle = null;  // Сбрасываем fakeAngle когда выключаем ротацию
         } else {
             this.previousAngle = this.currentAngle;
         }
@@ -147,7 +146,6 @@ public class TurnsConnection implements QuickImports {
 
     public void clear() {
         rotationPlanTaskProcessor.activeTasks.clear();
-        fakeAngle = null;
     }
 
     @EventHandler
