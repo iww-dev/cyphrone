@@ -44,8 +44,13 @@ public class HAngleV2X extends RotateConstructor {
 
      @Override
      public Turns limitAngleChange(Turns currentAngle, Turns targetAngle, Vec3d vec3d, Entity entity) {
-          if (!(entity instanceof LivingEntity target))
+          if (!(entity instanceof LivingEntity target)) {
+               // Сбрасываем кэш когда нет таргета
+               lastEnemyPos = null;
+               lastTargetRot = null;
+               predictedEnemyVelocity = Vec3d.ZERO;
                return targetAngle;
+          }
 
           Vec3d bestPoint = scanHitbox(target);
           targetAngle = MathAngle.calculateAngle(bestPoint);
@@ -128,8 +133,9 @@ public class HAngleV2X extends RotateConstructor {
      }
 
      private Turns applyBezierSmoothing(Turns current, Turns target) {
-          if (lastTargetRot == null)
+          if (lastTargetRot == null) {
                lastTargetRot = current;
+          }
 
           float diff = (float) Math.hypot(MathHelper.wrapDegrees(target.getYaw() - current.getYaw()),
                     target.getPitch() - current.getPitch());
@@ -156,7 +162,12 @@ public class HAngleV2X extends RotateConstructor {
                     current.getPitch() + (target.getPitch() - current.getPitch()) * 0.45f,
                     target.getPitch(), t);
 
-          lastTargetRot = target;
+          // Обновляем только если таргет изменился значительно
+          if (Math.abs(MathHelper.wrapDegrees(target.getYaw() - lastTargetRot.getYaw())) > 5 ||
+              Math.abs(target.getPitch() - lastTargetRot.getPitch()) > 5) {
+               lastTargetRot = target;
+          }
+          
           return new Turns(yaw, pitch);
      }
 
@@ -177,9 +188,14 @@ public class HAngleV2X extends RotateConstructor {
 
           float maxStep = 58.0f;
 
-          Aura aura = Aura.getInstance();
-          if (aura != null && aura.getTarget() != null && mc.player != null && mc.player.distanceTo(aura.getTarget()) < 1.2) {
-               maxStep = 42.0f;
+          // Проверяем дистанцию до таргета для close-range режима
+          if (mc.player != null) {
+               Aura aura = Aura.getInstance();
+               LivingEntity target = aura != null ? aura.getTarget() : null;
+               
+               if (target != null && mc.player.distanceTo(target) < 1.2) {
+                    maxStep = 42.0f;
+               }
           }
 
           if (yawDelta > maxStep) {
