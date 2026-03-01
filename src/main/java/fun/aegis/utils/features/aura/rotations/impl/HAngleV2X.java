@@ -26,6 +26,11 @@ public class HAngleV2X extends RotateConstructor {
      private Turns lastTargetRot;
      private final List<Vec3d> pathPoints = new ArrayList<>();
      private double staticChaosX = 0.5;
+     
+     // Velocity prediction для спидов
+     private Vec3d lastEnemyPos = null;
+     private long lastVelocityCheckTime = 0;
+     private Vec3d predictedEnemyVelocity = Vec3d.ZERO;
 
      public HAngleV2X() {
           super("HvH V2X");
@@ -50,6 +55,25 @@ public class HAngleV2X extends RotateConstructor {
                // Принудительно целимся в голову врага с большим downward pitch
                float downwardPitch = Math.max(targetAngle.getPitch(), 25.0f);
                targetAngle = new Turns(targetAngle.getYaw(), downwardPitch);
+          }
+          
+          // Очень слабенький velocity prediction для компенсации спидов
+          long currentTime = System.currentTimeMillis();
+          if (currentTime - lastVelocityCheckTime > 50) {
+               if (lastEnemyPos != null) {
+                    Vec3d currentPos = target.getPos();
+                    predictedEnemyVelocity = currentPos.subtract(lastEnemyPos);
+                    
+                    // Если враг движется быстро (спидится), добавляем микро-коррекцию
+                    if (predictedEnemyVelocity.length() > 0.15) {
+                         // Очень слабая коррекция - только 3% от скорости врага
+                         Vec3d correction = predictedEnemyVelocity.multiply(0.03);
+                         bestPoint = bestPoint.add(correction);
+                         targetAngle = MathAngle.calculateAngle(bestPoint);
+                    }
+               }
+               lastEnemyPos = target.getPos();
+               lastVelocityCheckTime = currentTime;
           }
 
           Turns smoothedAngle = applyBezierSmoothing(currentAngle, targetAngle);
