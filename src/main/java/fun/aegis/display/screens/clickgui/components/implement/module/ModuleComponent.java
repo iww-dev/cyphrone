@@ -84,7 +84,7 @@ public class ModuleComponent extends AbstractComponent {
         colorAnimation.setDirection(module.isState() ? FORWARDS : BACKWARDS);
         alphaAnimation.setDirection(module.isState() ? FORWARDS : BACKWARDS);
         int brightnessOffset = colorAnimation.getOutput().intValue();
-        int alphaOffset = 150 + alphaAnimation.getOutput().intValue();
+        int alphaOffset = Math.min(150 + alphaAnimation.getOutput().intValue(), 205);
 
         blur.render(ShapeProperties.create(context.getMatrices(), x, y, width, height = getComponentHeight())
                 .round(5)
@@ -108,7 +108,7 @@ public class ModuleComponent extends AbstractComponent {
                 .setState(module.isState())
                 .render(context, mouseX, mouseY, delta);
 
-        Fonts.getSize(15, DEFAULT).drawString(context.getMatrices(), point + module.getVisibleName(), x + 11, y + nameY, new Color(255, 255, 255, alphaOffset + 50).getRGB());
+        Fonts.getSize(15, DEFAULT).drawString(context.getMatrices(), point + module.getVisibleName(), x + 11, y + nameY, new Color(255, 255, 255, Math.min(alphaOffset + 50, 255)).getRGB());
 
         // Рендерим описание с улучшенным контрастом
         float currentX = x + 10;

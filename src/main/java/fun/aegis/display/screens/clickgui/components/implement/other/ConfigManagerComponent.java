@@ -114,8 +114,10 @@ public class ConfigManagerComponent extends AbstractComponent {
         float totalH = 0f;
         float renderScroll = Math.round(smoothedScroll);
         
-        for (int i = 0; i < configs.size(); i++) {
-            String config = configs.get(i);
+        // Делаем копию чтобы избежать ConcurrentModificationException
+        List<String> configsCopy = new ArrayList<>(configs);
+        for (int i = 0; i < configsCopy.size(); i++) {
+            String config = configsCopy.get(i);
             float itemY = contentY + yOff + renderScroll;
             
             renderConfigItem(matrix, config, x + PADDING, itemY, PANEL_WIDTH - PADDING * 2, CONFIG_ITEM_HEIGHT, mouseX, mouseY);
@@ -282,8 +284,10 @@ public class ConfigManagerComponent extends AbstractComponent {
             float yOff = 0f;
             float renderScroll = Math.round(smoothedScroll);
             
-            for (int i = 0; i < configs.size(); i++) {
-                String config = configs.get(i);
+            // Делаем копию чтобы избежать ConcurrentModificationException
+            List<String> configsCopy = new ArrayList<>(configs);
+            for (int i = 0; i < configsCopy.size(); i++) {
+                String config = configsCopy.get(i);
                 float itemY = contentY + yOff + renderScroll;
                 float itemW = PANEL_WIDTH - PADDING * 2;
                 

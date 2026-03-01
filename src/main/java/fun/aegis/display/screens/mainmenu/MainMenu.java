@@ -88,8 +88,8 @@ public class MainMenu extends Screen implements QuickImports {
             drawButton(context, sx, sy, 102, 18.5f, "Одиночная игра", mainAlphaInt);
             drawButton(context, sx, sy + bs, 102, 18.5f, "Сетевая игра", mainAlphaInt);
             drawButton(context, sx, sy + bs * 2, 102, 18.5f, "Аккаунты", mainAlphaInt);
-            drawButton(context, sx, sy + bs * 3, 102, 18.5f, "Настройки", mainAlphaInt);
-            drawButton(context, sx, sy + bs * 4, 50, 18.5f, "Выход", mainAlphaInt);
+            drawButton(context, sx, sy + bs * 3, 102, 18.5f, "", mainAlphaInt);
+            drawButton(context, sx, sy + bs * 4, 50, 18.5f, "", mainAlphaInt);
             drawButton(context, sx + 52, sy + bs * 4, 50, 18.5f, "Справка", mainAlphaInt);
 
             Fonts.getSize(21, Fonts.Type.ICONSTYPENEW).drawCenteredString(context.getMatrices(), "i", width / 2 - 24,
