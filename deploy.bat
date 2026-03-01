@@ -21,17 +21,7 @@ git add -A
 
 REM Коммитим
 echo [*] Creating commit...
-git commit -m "Fix camera jitter and improve GUI visuals
-
-- V2X: reduced jitterStrength to prevent camera shaking
-- V2X: added velocity prediction for speed exploit compensation
-- V2X: added inside-enemy detection for proper downward aiming
-- HWAngle: fixed variable name conflicts
-- MainMenu: added proper button labels
-- MenuScreen: improved window resize synchronization
-- PressableWidgetRender: fixed text overflow with dynamic font sizing
-- GUI: enhanced transparency values for better visibility
-- StrikeManager: removed conflicting sprint logic"
+git commit -m "Fix camera jitter and improve GUI visuals - V2X jitterStrength reduced, velocity prediction added, inside-enemy detection, HWAngle variable conflicts fixed, MainMenu button labels added, MenuScreen resize sync improved, PressableWidgetRender text overflow fixed, GUI transparency enhanced, StrikeManager logic optimized"
 
 REM Принудительный пуш (force push)
 echo [*] Force pushing to main branch...
